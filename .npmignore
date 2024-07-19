@@ -1,0 +1,16 @@
+node_modules
+public
+app
+
+
+.env*.local
+
+.npmignore
+.gitignore
+
+/.next/
+next.config.mjs
+
+
+tsconfig.json
+.eslintrc.json
