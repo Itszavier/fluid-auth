@@ -1,5 +1,5 @@
 
 
-export default class AuthHandler {
+export default class AuthConfig {
  
 }
