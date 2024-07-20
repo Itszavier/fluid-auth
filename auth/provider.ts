@@ -1,7 +1,7 @@
 /** @format */
 
 import { NextRequest, NextResponse } from "next/server";
-import google from "googleapis";
+import { Auth, Common } from "googleapis";
 
 export class BaseProvider {
   name: string;
@@ -19,14 +19,14 @@ export interface GoogleProviderConfig {
 
 export class GoogleProvider extends BaseProvider {
   config: GoogleProviderConfig;
-  authClient: google.Common.OAuth2Client;
+  authClient: Common.OAuth2Client;
 
   constructor(config: GoogleProviderConfig) {
     super("google");
 
     this.config = config;
 
-    this.authClient = new google.Auth.OAuth2Client({
+    this.authClient = new Auth.OAuth2Client({
       clientId: this.config.clientId,
       clientSecret: this.config.clientSecret,
       redirectUri: `http://localhost:3000/api/auth/callback/${this.name}`,
@@ -58,9 +58,14 @@ export class GoogleProvider extends BaseProvider {
         },
       });
 
+      if (!response.ok) {
+        console.log(await response.json());
+        throw new Error("something went wrong");
+      }
+
       // Here, you would handle the user data, e.g., create a session, store user in DB, etc.
       // For this example, we'll just send the user data as JSON.
-      const profile = response.json();
+      const profile = await response.json();
 
       return await this.config.callback(profile);
     } catch (error) {

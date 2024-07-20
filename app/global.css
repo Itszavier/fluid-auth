@@ -5,3 +5,10 @@
   padding: 0;
   box-sizing: 0;
 }
+
+button {
+  padding: 8px;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+}
