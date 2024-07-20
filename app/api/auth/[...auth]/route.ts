@@ -1,6 +1,6 @@
 /** @format */
 
-import AuthHandler from "@/auth";
+import AuthHandler from "@/auth/AuthHandler";
 import { GoogleProvider } from "@/auth/provider";
 import { Session } from "@/auth/session";
 import { NextRequest } from "next/server";
