@@ -96,7 +96,7 @@ export default class AuthHandler {
       const user = await provider.authorize(code);
 
       await session.createSession({ user });
-      return NextResponse.json({ message: "successfuly logged in", user });
+      return NextResponse.json({ message: "successfuly logged in", user, session: await this.config.session.getSession() });
     } catch (error: any) {
       return NextResponse.json({ message: error.message }, { status: 500 });
     }
