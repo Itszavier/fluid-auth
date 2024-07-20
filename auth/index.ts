@@ -53,7 +53,7 @@ export default class AuthHandler {
       return NextResponse.json({ message: error.message }, { status: 500 });
     }
   }
-
+  
   private async handleCallback(
     req: NextRequest,
     route: string
