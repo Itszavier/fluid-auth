@@ -1,6 +1,7 @@
 /** @format */
 
 import { NextRequest, NextResponse } from "next/server";
+import { Session } from "./session";
 
 export interface Provider {
   name: string;
@@ -10,6 +11,7 @@ export interface Provider {
 
 export interface Config {
   providers?: Provider[];
+  session: Session;
 }
 
 export default class AuthHandler {
@@ -26,11 +28,15 @@ export default class AuthHandler {
     switch (true) {
       case route === "signin":
         return await this.handleLogin(req);
-
       case route.startsWith("callback"):
         return await this.handleCallback(req, route);
-
+      case route === "logout":
+        return await this.handleLogout(req);
       default:
+        const session = await this.config.session.getSession();
+        if (session) {
+          return NextResponse.json({ user: session.user, session });
+        }
         return NextResponse.json({ message: "Not Found" }, { status: 404 });
     }
   }
@@ -53,7 +59,15 @@ export default class AuthHandler {
       return NextResponse.json({ message: error.message }, { status: 500 });
     }
   }
-  
+
+  private async handleLogout(req: NextRequest) {
+    const session = this.config.session;
+
+    await session.deleteSession();
+
+    return NextResponse.json({ message: "Logged out" });
+  }
+
   private async handleCallback(
     req: NextRequest,
     route: string
@@ -77,12 +91,12 @@ export default class AuthHandler {
           { status: 400 }
         );
       }
-
+      const session = this.config.session;
       const provider = this.getProvider(providerName);
       const user = await provider.authorize(code);
 
-  
-      return NextResponse.json({ user });
+      await session.createSession({ user });
+      return NextResponse.json({ message: "successfuly logged in", user });
     } catch (error: any) {
       return NextResponse.json({ message: error.message }, { status: 500 });
     }

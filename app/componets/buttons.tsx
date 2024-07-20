@@ -8,5 +8,6 @@ export function LoginButton(props: { provider: string; label: string }) {
   const handleClick = () => {
     router.push(`/api/auth/signin?provider=${props.provider}`);
   };
+  
   return <button onClick={handleClick}>Login with {props.label}</button>;
 }
