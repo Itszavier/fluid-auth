@@ -11,6 +11,7 @@ export interface Provider {
 
 export interface Config {
   providers?: Provider[];
+  redirect: boolean;
   session: Session;
 }
 
@@ -84,6 +85,8 @@ export default class AuthHandler {
     try {
       const url = new URL(req.url);
       const code = url.searchParams.get("code");
+      const redirect = url.searchParams.get("redirecturl") || "/";
+       
 
       if (!code) {
         return NextResponse.json(
@@ -95,8 +98,12 @@ export default class AuthHandler {
       const provider = this.getProvider(providerName);
       const user = await provider.authorize(code);
 
-      await session.createSession({ user });
-      return NextResponse.json({ message: "successfuly logged in", user, session: await this.config.session.getSession() });
+      await session.createSession(user);
+      return NextResponse.json({
+        message: "successfuly logged in",
+        user,
+        session: await this.config.session.getSession(),
+      });
     } catch (error: any) {
       return NextResponse.json({ message: error.message }, { status: 500 });
     }

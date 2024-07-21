@@ -29,7 +29,7 @@ export class GoogleProvider extends BaseProvider {
     this.authClient = new Auth.OAuth2Client({
       clientId: this.config.clientId,
       clientSecret: this.config.clientSecret,
-      redirectUri: `http://localhost:3000/api/auth/callback/${this.name}`,
+      redirectUri: `https://legendary-space-system-rxrrjj5jwq5fpg5v-3000.app.github.dev/api/auth/callback/${this.name}`,
     });
   }
 
@@ -66,7 +66,7 @@ export class GoogleProvider extends BaseProvider {
       // Here, you would handle the user data, e.g., create a session, store user in DB, etc.
       // For this example, we'll just send the user data as JSON.
       const profile = await response.json();
-
+     
       return await this.config.callback(profile);
     } catch (error) {
       return error;

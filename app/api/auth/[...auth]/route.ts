@@ -13,11 +13,16 @@ const Google = new GoogleProvider({
   },
 });
 
+const sessionManager = new Session({
+  cookie: {},
+  serializeUser: async (user) => {
+    console.log("from serialize function", user);
+    return user.id;
+  },
+});
 const authHandler = new AuthHandler({
   providers: [Google],
-  session: new Session({
-    cookie: {},
-  }),
+  session: sessionManager,
 });
 
 export function GET(req: NextRequest) {

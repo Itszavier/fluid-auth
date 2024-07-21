@@ -14,6 +14,8 @@ export interface ISessionOption {
     httpOnly?: boolean;
     sameSite?: "strict" | "lax" | "none";
   };
+  serializeUser?: (user: any) => Promise<any>;
+  deserializeUser?: (userData: any) => Promise<any>;
 }
 
 export interface ISession {
@@ -79,10 +81,18 @@ class Session {
       expires: this.options.cookie.expires,
     });
 
+    console.log("create session", user);
+
+    const serializedUser = this.options.serializeUser
+      ? await this.options.serializeUser(user) // await this.options.serializeUser(user)
+      : user;
+
+    console.log("serializedUser", serializedUser);
+
     await this.store.createSession({
       id,
       expires: this.options.cookie.expires as Date,
-      user,
+      user: serializedUser,
     });
   }
 
@@ -95,20 +105,16 @@ class Session {
 
     const session = await this.store.getSession(sessionId);
 
-    /* if (!session) {
-      return null;
+    if (session && this.options.deserializeUser) {
+      session.user = await this.options.deserializeUser(session.user);
     }
 
-    if (new Date() > session.expires) {
-      await this.deleteSession();
-      return null;
-    }*/
-   
     return session;
   }
 
   async deleteSession(): Promise<void> {
     const sessionId = cookies().get(this.options.cookie.name as string)?.value;
+    
     if (!sessionId) {
       return;
     }
