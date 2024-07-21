@@ -91,7 +91,7 @@ class Session {
 
     console.log("serializedUser", serializedUser);
 
-    await this.store.createSession({
+   await this.store.createSession({
       id,
       expires: this.options.cookie.expires as Date,
       user: serializedUser,
