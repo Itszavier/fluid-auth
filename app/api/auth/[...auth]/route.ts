@@ -13,22 +13,21 @@ const Google = new GoogleProvider({
   },
 });
 
-const sessionManager = new Session({
-  cookie: {},
-  serializeUser: async (user) => {
-    console.log("from serialize function", user);
-    return user.id;
-  },
-});
-const authHandler = new AuthHandler({
+const { handler } = new AuthHandler({
   providers: [Google],
-  session: sessionManager,
+  session: new Session({
+    cookie: {},
+    serializeUser: async (user) => {
+      console.log("from serialize function", user);
+      // store the userId to the session in the database
+      return user.id;
+    },
+
+    deserializeUser: async (userId: string) => {
+      // find the user in the database
+      return userId;
+    },
+  }),
 });
 
-export function GET(req: NextRequest) {
-  return authHandler.handleRequest(req);
-}
-
-export function POST(req: NextRequest) {
-  return authHandler.handleRequest(req);
-}
+export default handler;

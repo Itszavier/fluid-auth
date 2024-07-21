@@ -1,28 +1,16 @@
 /** @format */
 
 import { NextRequest, NextResponse } from "next/server";
-import { Session } from "./session";
-
-export interface Provider {
-  name: string;
-  handleLogin: (req: NextRequest) => Promise<NextResponse>;
-  authorize: (code: string) => Promise<any | null>;
-}
-
-export interface Config {
-  providers?: Provider[];
-  redirect: boolean;
-  session: Session;
-}
+import { Provider, AuthHandlerConfig } from "./types";
 
 export default class AuthHandler {
-  private config: Config;
+  private config: AuthHandlerConfig;
 
-  constructor(config: Config) {
+  constructor(config: AuthHandlerConfig) {
     this.config = config;
   }
 
-  async handleRequest(req: NextRequest): Promise<NextResponse | null> {
+  private async handleRequest(req: NextRequest): Promise<NextResponse | null> {
     const { pathname } = new URL(req.url);
     const route = pathname.trim().split("/").splice(3).join("/");
 
@@ -86,7 +74,6 @@ export default class AuthHandler {
       const url = new URL(req.url);
       const code = url.searchParams.get("code");
       const redirect = url.searchParams.get("redirecturl") || "/";
-       
 
       if (!code) {
         return NextResponse.json(
@@ -115,5 +102,17 @@ export default class AuthHandler {
       throw new Error("Provider was not found");
     }
     return provider;
+  }
+
+  handler() {
+    return {
+      GET: async (req: NextRequest) => {
+        return await this.handleRequest(req);
+      },
+
+      POST: async (req: NextRequest) => {
+        return await this.handleRequest(req);
+      },
+    };
   }
 }
