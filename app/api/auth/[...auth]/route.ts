@@ -1,7 +1,7 @@
 /** @format */
 
 import AuthHandler from "@/lib/AuthHandler";
-import { GoogleProvider } from "@/lib/provider";
+import { GoogleProvider } from "@/lib/providers";
 import { Session } from "@/lib/session";
 import { NextRequest } from "next/server";
 

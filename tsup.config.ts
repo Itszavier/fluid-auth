@@ -3,7 +3,7 @@
 import { defineConfig } from "tsup";
 
 export default defineConfig({
-  entry: ["auth/**/*.ts"],
+  entry: ["lib/**/*.ts"],
   format: ["cjs", "esm"],
   dts: true,
   splitting: false,

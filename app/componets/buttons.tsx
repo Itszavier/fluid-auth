@@ -1,6 +1,6 @@
 /** @format */
 "use client";
-import { SignIn } from "@/lib/helpers";
+import { SignIn } from "@/lib/client/helpers";
 import { useRouter } from "next/navigation";
 
 export function LoginButton(props: { provider: string; label: string }) {

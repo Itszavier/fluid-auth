@@ -3,6 +3,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Provider, AuthHandlerConfig } from "./types";
 
+let redirectUrl: string | null = null;
+
 export default class AuthHandler {
   private config: AuthHandlerConfig;
 
@@ -10,28 +12,10 @@ export default class AuthHandler {
     this.config = config;
   }
 
-  async handleRequest(req: NextRequest): Promise<NextResponse | null> {
-    const { pathname } = new URL(req.url);
-    const route = pathname.trim().split("/").splice(3).join("/");
-
-    switch (true) {
-      case route === "signin":
-        return await this.handleLogin(req);
-      case route.startsWith("callback"):
-        return await this.handleCallback(req, route);
-      case route === "logout":
-        return await this.handleLogout(req);
-      default:
-        const session = await this.config.session.getSession();
-        if (session) {
-          return NextResponse.json({ user: session.user, session });
-        }
-        return NextResponse.json({ message: "Not Found" }, { status: 404 });
-    }
-  }
-
   private async handleLogin(req: NextRequest): Promise<NextResponse | null> {
     const providerName = req.nextUrl.searchParams.get("provider");
+
+    redirectUrl = req.nextUrl.searchParams.get("redirecturl");
 
     if (!providerName) {
       return NextResponse.json(
@@ -73,7 +57,6 @@ export default class AuthHandler {
     try {
       const url = new URL(req.url);
       const code = url.searchParams.get("code");
-      const redirect = url.searchParams.get("redirecturl") as string;
 
       if (!code) {
         return NextResponse.json(
@@ -86,6 +69,10 @@ export default class AuthHandler {
       const user = await provider.authorize(code);
 
       await session.createSession(user);
+      const redirect = redirectUrl; // Use stored redirect URL or default to "/"
+
+      // Clear the redirect URL after use
+      redirectUrl = null;
 
       return NextResponse.json({ redirect: `${this.getBaseUrl(req)}/${redirect}` });
     } catch (error: any) {
@@ -111,13 +98,23 @@ export default class AuthHandler {
     return provider;
   }
 
-  handler = {
-    GET: async (req: NextRequest) => {
-      return await this.handleRequest(req);
-    },
+  async handleRequest(req: NextRequest): Promise<NextResponse | null> {
+    const { pathname } = new URL(req.url);
+    const route = pathname.trim().split("/").splice(3).join("/");
 
-    POST: async (req: NextRequest) => {
-      return await this.handleRequest(req);
-    },
-  };
+    switch (true) {
+      case route === "signin":
+        return await this.handleLogin(req);
+      case route.startsWith("callback"):
+        return await this.handleCallback(req, route);
+      case route === "logout":
+        return await this.handleLogout(req);
+      default:
+        const session = await this.config.session.getSession();
+        if (session) {
+          return NextResponse.json({ user: session.user, session });
+        }
+        return NextResponse.json({ message: "Not Found" }, { status: 404 });
+    }
+  }
 }
