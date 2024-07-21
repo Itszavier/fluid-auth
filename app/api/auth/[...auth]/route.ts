@@ -13,7 +13,7 @@ const Google = new GoogleProvider({
   },
 });
 
-const { handler } = new AuthHandler({
+const authHandler = new AuthHandler({
   providers: [Google],
   session: new Session({
     cookie: {},
@@ -30,4 +30,10 @@ const { handler } = new AuthHandler({
   }),
 });
 
-export default handler;
+export function GET(req: NextRequest) {
+  return authHandler.handleRequest(req);
+}
+
+export function POST(req: NextRequest) {
+  return authHandler.handleRequest(req);
+}

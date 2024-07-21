@@ -1,5 +1,7 @@
 /** @format */
 
+import { NextRequest } from "next/server";
+
 // Basic options interface for handling redirects
 export interface IOptionType {
   /**
@@ -28,10 +30,14 @@ export interface ISignUpOption extends IOptionType {
  * // Example usage:
  * SignUp("google", { redirect: "/dashboard", customParam: "value" });
  */
-export function SignUp(provider: string, options?: ISignUpOption): void {
-  // Implementation logic for user sign-up
-  // For example, you might trigger the sign-up process with the specified provider
-  // and handle the redirect or other options.
+export function SignIn(provider: string, options?: ISignUpOption): void {
+  const baseUrl = window.location.origin;
+  const redirectUrl = options?.redirect || "/";
+
+  // Redirect the user to the sign-up URL
+  window.location.href = `${baseUrl}/api/auth/signin?provider=${provider}&redirecturl=${encodeURIComponent(
+    redirectUrl
+  )}`;
 }
 
 /**
@@ -44,6 +50,34 @@ export function SignUp(provider: string, options?: ISignUpOption): void {
  * SignOut({ redirect: "/home" });
  */
 export function SignOut(options?: IOptionType): void {
-  // Implementation logic for user sign-out
-  // For example, you might end the user session and handle the redirect or other options.
+  // Function to handle user sign-out with optional redirect options
+  const { redirect } = options || {};
+
+  // Make a request to the backend to log out the user
+  fetch("/api/auth/logout", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  })
+    .then((response) => response.json())
+    .then(() => {
+      // Redirect to the specified URL or default to home
+      const redirectUrl = redirect || "/";
+      window.location.href = redirectUrl;
+    })
+    .catch((error) => {
+      console.error("Error during sign-out:", error);
+      // Optionally handle sign-out errors, e.g., show an error message
+    });
+}
+
+export function getBaseUrl(req: NextRequest) {
+  const { nextUrl } = req;
+  const protocol = nextUrl.protocol; // Usually 'http:' or 'https:'
+  const hostname = nextUrl.hostname; // The domain (e.g., 'example.com')
+  const port = nextUrl.port ? `:${nextUrl.port}` : ""; // Port if specified
+
+  // Construct the base URL
+  return `${protocol}//${hostname}${port}`;
 }

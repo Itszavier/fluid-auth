@@ -10,7 +10,7 @@ export default class AuthHandler {
     this.config = config;
   }
 
-  private async handleRequest(req: NextRequest): Promise<NextResponse | null> {
+  async handleRequest(req: NextRequest): Promise<NextResponse | null> {
     const { pathname } = new URL(req.url);
     const route = pathname.trim().split("/").splice(3).join("/");
 
@@ -73,7 +73,7 @@ export default class AuthHandler {
     try {
       const url = new URL(req.url);
       const code = url.searchParams.get("code");
-      const redirect = url.searchParams.get("redirecturl") || "/";
+      const redirect = url.searchParams.get("redirecturl") as string;
 
       if (!code) {
         return NextResponse.json(
@@ -86,15 +86,21 @@ export default class AuthHandler {
       const user = await provider.authorize(code);
 
       await session.createSession(user);
-      
-      return NextResponse.json({
-        message: "successfuly logged in",
-        user,
-        session: await this.config.session.getSession(),
-      });
+
+      return NextResponse.json({ redirect: `${this.getBaseUrl(req)}/${redirect}` });
     } catch (error: any) {
       return NextResponse.json({ message: error.message }, { status: 500 });
     }
+  }
+
+  private getBaseUrl(req: NextRequest): string {
+    const { nextUrl } = req;
+    const protocol = nextUrl.protocol; // Usually 'http:' or 'https:'
+    const hostname = nextUrl.hostname; // The domain (e.g., 'example.com')
+    const port = nextUrl.port ? `:${nextUrl.port}` : ""; // Port if specified
+
+    // Construct the base URL
+    return `${protocol}//${hostname}${port}`;
   }
 
   private getProvider(name: string): Provider {
@@ -105,15 +111,13 @@ export default class AuthHandler {
     return provider;
   }
 
-  handler() {
-    return {
-      GET: async (req: NextRequest) => {
-        return await this.handleRequest(req);
-      },
+  handler = {
+    GET: async (req: NextRequest) => {
+      return await this.handleRequest(req);
+    },
 
-      POST: async (req: NextRequest) => {
-        return await this.handleRequest(req);
-      },
-    };
-  }
+    POST: async (req: NextRequest) => {
+      return await this.handleRequest(req);
+    },
+  };
 }

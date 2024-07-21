@@ -3,6 +3,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Auth, Common } from "googleapis";
 import { BaseProvider } from "./types";
+import { getBaseUrl } from "./helpers";
 
 export interface GoogleProviderConfig {
   clientId: string;
@@ -13,6 +14,7 @@ export interface GoogleProviderConfig {
 export class GoogleProvider extends BaseProvider {
   config: GoogleProviderConfig;
   authClient: Common.OAuth2Client;
+  private redirectUrl = "/";
 
   constructor(config: GoogleProviderConfig) {
     super("google");
@@ -22,17 +24,26 @@ export class GoogleProvider extends BaseProvider {
     this.authClient = new Auth.OAuth2Client({
       clientId: this.config.clientId,
       clientSecret: this.config.clientSecret,
-      redirectUri: `https://legendary-space-system-rxrrjj5jwq5fpg5v-3000.app.github.dev/api/auth/callback/${this.name}`,
     });
   }
 
   async handleLogin(req: NextRequest) {
+    const redirectUrl = req.nextUrl.searchParams.get("redirecturl") || "/";
+    console.log("redirect url", redirectUrl);
     const scope = [
       "https://www.googleapis.com/auth/userinfo.profile",
       "https://www.googleapis.com/auth/userinfo.email",
     ];
 
-    const url = this.authClient.generateAuthUrl({ scope, access_type: "offline" });
+    const redirect_uri = `https://legendary-space-system-rxrrjj5jwq5fpg5v-3000.app.github.dev/api/auth/callback/${this.name}`;
+
+    console.log(redirect_uri);
+    
+    const url = this.authClient.generateAuthUrl({
+      scope,
+      access_type: "offline",
+      redirect_uri,
+    });
 
     return NextResponse.redirect(url);
   }
