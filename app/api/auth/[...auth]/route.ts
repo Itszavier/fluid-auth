@@ -1,8 +1,8 @@
 /** @format */
 
-import AuthHandler from "@/auth/AuthHandler";
-import { GoogleProvider } from "@/auth/provider";
-import { Session } from "@/auth/session";
+import AuthHandler from "@/lib/AuthHandler";
+import { GoogleProvider } from "@/lib/provider";
+import { Session } from "@/lib/session";
 import { NextRequest } from "next/server";
 
 const Google = new GoogleProvider({
