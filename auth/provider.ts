@@ -2,14 +2,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { Auth, Common } from "googleapis";
-
-export class BaseProvider {
-  name: string;
-
-  constructor(name: string) {
-    this.name = name;
-  }
-}
+import { BaseProvider } from "./types";
 
 export interface GoogleProviderConfig {
   clientId: string;
@@ -66,7 +59,7 @@ export class GoogleProvider extends BaseProvider {
       // Here, you would handle the user data, e.g., create a session, store user in DB, etc.
       // For this example, we'll just send the user data as JSON.
       const profile = await response.json();
-     
+
       return await this.config.callback(profile);
     } catch (error) {
       return error;

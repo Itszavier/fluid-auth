@@ -86,6 +86,7 @@ export default class AuthHandler {
       const user = await provider.authorize(code);
 
       await session.createSession(user);
+      
       return NextResponse.json({
         message: "successfuly logged in",
         user,

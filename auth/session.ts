@@ -1,6 +1,7 @@
 /** @format */
 import { cookies } from "next/headers";
 import { randomBytes } from "crypto";
+import { BaseSessionStore } from "./types";
 
 export interface ISessionOption {
   store?: BaseSessionStore;
@@ -25,10 +26,11 @@ export interface ISession {
   user: any;
 }
 
-class BaseSessionStore {
+class MemoryStore extends BaseSessionStore {
   private sessionStore: Map<string, ISession>;
 
   constructor() {
+    super();
     this.sessionStore = new Map();
   }
 
@@ -67,7 +69,7 @@ class Session {
       },
     };
 
-    this.store = this.options.store || new BaseSessionStore();
+    this.store = this.options.store || new MemoryStore();
   }
 
   async createSession(user: any): Promise<void> {
@@ -114,7 +116,7 @@ class Session {
 
   async deleteSession(): Promise<void> {
     const sessionId = cookies().get(this.options.cookie.name as string)?.value;
-    
+
     if (!sessionId) {
       return;
     }
@@ -123,4 +125,4 @@ class Session {
   }
 }
 
-export { BaseSessionStore, Session };
+export { Session, MemoryStore };
