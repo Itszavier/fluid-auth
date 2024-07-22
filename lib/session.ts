@@ -26,7 +26,7 @@ export interface ISession {
   user: any;
 }
 
-class MemoryStore extends BaseSessionStore {
+export class MemoryStore extends BaseSessionStore {
   private sessionStore: Map<string, ISession>;
 
   constructor() {
@@ -47,7 +47,7 @@ class MemoryStore extends BaseSessionStore {
   }
 }
 
-class Session {
+export class Session {
   private options: ISessionOption;
   private store: BaseSessionStore;
 
@@ -125,4 +125,4 @@ class Session {
   }
 }
 
-export { Session, MemoryStore };
+

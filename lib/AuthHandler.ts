@@ -5,14 +5,14 @@ import { Provider, AuthHandlerConfig } from "./types";
 
 let redirectUrl: string | null = null;
 
-export default class AuthHandler {
+export class AuthHandler {
   private config: AuthHandlerConfig;
 
   constructor(config: AuthHandlerConfig) {
     this.config = config;
   }
 
-  private async handleLogin(req: NextRequest): Promise<NextResponse | null> {
+  private async handleLogin(req: NextRequest): Promise<NextResponse> {
     const providerName = req.nextUrl.searchParams.get("provider");
 
     redirectUrl = req.nextUrl.searchParams.get("redirecturl");
@@ -44,7 +44,7 @@ export default class AuthHandler {
   private async handleCallback(
     req: NextRequest,
     route: string
-  ): Promise<NextResponse | null> {
+  ): Promise<NextResponse> {
     const providerName = route.split("/").pop();
 
     if (!providerName) {
@@ -98,7 +98,7 @@ export default class AuthHandler {
     return provider;
   }
 
-  async handleRequest(req: NextRequest): Promise<NextResponse | null> {
+  async handleRequest(req: NextRequest): Promise<NextResponse> {
     const { pathname } = new URL(req.url);
     const route = pathname.trim().split("/").splice(3).join("/");
 

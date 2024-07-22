@@ -9,4 +9,7 @@ export default defineConfig({
   splitting: false,
   sourcemap: true,
   clean: true,
+  external: ["react", "react-dom", "next", "googleapis"], // Externalize dependencies
+  tsconfig: "./tsconfig.json", // Ensure tsconfig.json is being used
+  outDir: "dist",
 });

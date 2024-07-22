@@ -1,9 +1,9 @@
 /** @format */
 
-import AuthHandler from "@/lib/AuthHandler";
+import { AuthHandler} from "@/lib/AuthHandler";
 import { GoogleProvider } from "@/lib/providers";
 import { Session } from "@/lib/session";
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 const Google = new GoogleProvider({
   clientId: process.env.GOOGLE_CLIENT_ID as string,
