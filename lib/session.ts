@@ -1,7 +1,7 @@
 /** @format */
 import { cookies } from "next/headers";
 import { randomBytes } from "crypto";
-import { BaseSessionStore } from "./types";
+import { BaseSession, BaseSessionStore } from "./types";
 
 export interface ISessionOption {
   store?: BaseSessionStore;
@@ -19,26 +19,19 @@ export interface ISessionOption {
   deserializeUser?: (userData: any) => Promise<any>;
 }
 
-export interface ISession {
-  id: string;
-  expires: Date;
-  maxAge?: number;
-  user: any;
-}
-
 export class MemoryStore extends BaseSessionStore {
-  private sessionStore: Map<string, ISession>;
+  private sessionStore: Map<string, BaseSession>;
 
   constructor() {
     super();
     this.sessionStore = new Map();
   }
 
-  async createSession(session: ISession): Promise<void> {
+  async createSession(session: BaseSession): Promise<void> {
     this.sessionStore.set(session.id, session);
   }
 
-  async getSession(sessionId: string): Promise<ISession | null> {
+  async getSession(sessionId: string): Promise<BaseSession | null> {
     return this.sessionStore.get(sessionId) || null;
   }
 
@@ -91,14 +84,14 @@ export class Session {
 
     console.log("serializedUser", serializedUser);
 
-   await this.store.createSession({
+    await this.store.createSession({
       id,
       expires: this.options.cookie.expires as Date,
       user: serializedUser,
     });
   }
 
-  async getSession(): Promise<ISession | null> {
+  async getSession(): Promise<BaseSession | null> {
     const sessionId = cookies().get(this.options.cookie.name as string)?.value;
 
     if (!sessionId) {
@@ -124,5 +117,3 @@ export class Session {
     await this.store.deleteSession(sessionId);
   }
 }
-
-

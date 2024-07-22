@@ -73,12 +73,4 @@ export function SignOut(options?: IOptionType): void {
     });
 }
 
-export function getBaseUrl(req: NextRequest) {
-  const { nextUrl } = req;
-  const protocol = nextUrl.protocol; // Usually 'http:' or 'https:'
-  const hostname = nextUrl.hostname; // The domain (e.g., 'example.com')
-  const port = nextUrl.port ? `:${nextUrl.port}` : ""; // Port if specified
 
-  // Construct the base URL
-  return `${protocol}//${hostname}${port}`;
-}
