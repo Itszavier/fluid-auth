@@ -10,20 +10,23 @@ export interface Provider {
 }
 
 export interface AuthHandlerConfig {
+  /**
+   * Your application domain/url
+   */
+  origin: string;
   providers?: Provider[];
-  redirect?: boolean;
   session: Session;
 }
 
-export interface BaseSession {
+export type BaseUser = any;
+
+export interface BaseSession<User = BaseUser> {
   id: string;
   expires: Date;
   maxAge?: number;
-  user: any;
+  user: User;
   [key: string]: any;
 }
-
-
 
 /**
  * Sole responsibility for interacting with the sessions in a database.
@@ -62,7 +65,6 @@ export abstract class BaseSessionStore {
   }
 }
 
-
 /**
  * Abstract class representing a base authentication provider.
  */
@@ -94,7 +96,5 @@ export abstract class BaseProvider {
    * @throws {Error} If the method is not implemented.
    */
 
-  async authorize(code: string): Promise<null | any> {
-    throw new Error("authorize function not implemented");
-  }
+  async authorize?(code: string): Promise<null | any> {}
 }
