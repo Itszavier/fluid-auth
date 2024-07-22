@@ -6,6 +6,31 @@
   box-sizing: 0;
 }
 
+body {
+  height: 100%;
+  background: linear-gradient(800deg, #ff9a9e, #fad0c4);
+}
+
+.form {
+  display: flex;
+  width: 400px;
+  display: flex;
+  padding: 10px;
+  align-items: center;
+  height: 300px;
+  flex-direction: column;
+  border-radius: 10px;
+}
+
+input {
+  padding: 14px;
+  width: 90%;
+  margin: 8px;
+  outline: none;
+  border: none;
+  border-radius: 8px;
+}
+
 button {
   padding: 8px;
   border: none;
@@ -14,6 +39,13 @@ button {
   border-radius: 8px;
   background-color: black;
   color: white;
-  height: 60px;
-  width: 200px;
+  height: 50px;
+  width: 90%;
+}
+
+.bottom {
+  margin-top: 30px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
 }

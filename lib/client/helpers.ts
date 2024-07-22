@@ -1,7 +1,5 @@
 /** @format */
 
-import { NextRequest } from "next/server";
-
 // Basic options interface for handling redirects
 export interface IOptionType {
   /**
@@ -34,7 +32,7 @@ export interface ISignUpOption extends IOptionType {
 export function SignIn(provider: string, options?: ISignUpOption): void {
   const baseUrl = window.location.origin;
   const redirectUrl = options?.redirect || "/";
-
+  console.log("baseurl", baseUrl);
   // Redirect the user to the sign-up URL
   window.location.href = `${baseUrl}/api/auth/signin?provider=${provider}&redirecturl=${encodeURIComponent(
     redirectUrl

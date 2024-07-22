@@ -7,7 +7,14 @@ import { LoginButton } from "./componets/buttons";
 export default function Home() {
   return (
     <main className={styles.main}>
-      <LoginButton label="Google" provider="google" />
+      <form className={"form"}>
+        <input placeholder="Email" />
+        <input placeholder="Password" />
+
+        <div className="bottom">
+          <LoginButton label="Google" provider="google" />
+        </div>
+      </form>
     </main>
   );
 }
