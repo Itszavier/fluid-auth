@@ -2,6 +2,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { Provider, AuthHandlerConfig } from "./types";
+import next from "next";
 
 let redirectUrl: string | null = null;
 
@@ -55,8 +56,11 @@ export class AuthHandler {
    * @param route - The route string
    * @returns The Next.js response object
    */
-  
-  private async handleCallback(req: NextRequest, route: string): Promise<NextResponse> {
+
+  private async handleCallback(
+    req: NextRequest,
+    route: string
+  ): Promise<NextResponse> {
     const providerName = route.split("/").pop();
 
     if (!providerName) {
@@ -93,13 +97,14 @@ export class AuthHandler {
         return NextResponse.redirect(`${origin}${redirect}`);
       }
 
-      return NextResponse.json({ message: `login with ${providerName} was a success` });
+      return NextResponse.json({
+        message: `login with ${providerName} was a success`,
+      });
     } catch (error: any) {
       console.error("Error on the callback route:", error);
       return NextResponse.json({ message: error.message }, { status: 500 });
     }
   }
-
 
   /**
    * Retrieves the provider by name from the config
@@ -108,11 +113,20 @@ export class AuthHandler {
    */
 
   private getProvider(name: string): Provider {
-    const provider = this.config.providers?.find((provider) => provider.name === name);
+    const provider = this.config.providers?.find(
+      (provider) => provider.name === name
+    );
     if (!provider) {
       throw new Error("Provider was not found");
     }
     return provider;
+  }
+
+  private getRoute(req: NextRequest) {
+    const { pathname } = new URL(req.url);
+    const route = pathname.trim().split("/").splice(3).join("/");
+
+    return route;
   }
 
   /**
@@ -120,9 +134,9 @@ export class AuthHandler {
    * @param req - The Next.js request object
    * @returns The Next.js response object
    */
-  async handleRequest(req: NextRequest): Promise<NextResponse> {
-    const { pathname } = new URL(req.url);
-    const route = pathname.trim().split("/").splice(3).join("/");
+
+  private async handleGetRequest(req: NextRequest): Promise<NextResponse> {
+    const route = this.getRoute(req);
 
     switch (true) {
       case route === "signin":
@@ -137,6 +151,32 @@ export class AuthHandler {
           return NextResponse.json({ user: session.user, session });
         }
         return NextResponse.json({ message: "Not Found" }, { status: 404 });
+    }
+  }
+
+  private async handlePostRequest(req: NextRequest): Promise<NextResponse> {
+    const route = this.getRoute(req);
+    switch (route) {
+      case "sigin":
+        return await this.handleLogin(req);
+      default:
+        return NextResponse.json(
+          { message: "UnImplemented route" },
+          { status: 401, statusText: "UnImplemented route" }
+        );
+    }
+  }
+
+  async handleRequest(req: NextRequest): Promise<NextResponse> {
+    const method = req.method;
+
+    switch (method) {
+      case "GET":
+        return await this.handleGetRequest(req);
+      case "POST":
+        return await this.handleGetRequest(req);
+      default:
+        return NextResponse.json({ message: "UnImplemented method" });
     }
   }
 }
