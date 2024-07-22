@@ -1,8 +1,7 @@
 /** @format */
 
 import { NextRequest, NextResponse } from "next/server";
-import { Provider, AuthHandlerConfig } from "./types";
-import next from "next";
+import { AuthHandlerConfig, BaseProvider } from "./types";
 
 let redirectUrl: string | null = null;
 
@@ -10,7 +9,26 @@ export class AuthHandler {
   private config: AuthHandlerConfig;
 
   constructor(config: AuthHandlerConfig) {
+    if (!config) {
+      throw new Error(
+        "[AuthHandler] Config is undefined but has fields that are required "
+      );
+    }
+
+    /*if (!config.origin || !config.session || !config.providers) {
+      throw new Error(
+        "[AuthHandler] Required field (origin | session | Providers) is missing in config"
+      );
+    }*/
+
     this.config = config;
+    this.addSessionToProvider();
+  }
+
+  addSessionToProvider() {
+    this.config.providers?.forEach((provider) => {
+      provider._setSession(this.config.session);
+    });
   }
 
   /**
@@ -83,7 +101,7 @@ export class AuthHandler {
 
       const session = this.config.session;
       const provider = this.getProvider(providerName);
-      const user = await provider.authorize(code);
+      const user = await provider.authorize!(code);
 
       await session.createSession(user);
 
@@ -112,14 +130,14 @@ export class AuthHandler {
    * @returns The provider object
    */
 
-  private getProvider(name: string): Provider {
+  private getProvider(name: string): BaseProvider {
     const provider = this.config.providers?.find(
       (provider) => provider.name === name
     );
     if (!provider) {
       throw new Error("Provider was not found");
     }
-    return provider;
+    return provider as BaseProvider;
   }
 
   private getRoute(req: NextRequest) {
@@ -157,7 +175,7 @@ export class AuthHandler {
   private async handlePostRequest(req: NextRequest): Promise<NextResponse> {
     const route = this.getRoute(req);
     switch (route) {
-      case "sigin":
+      case "signin":
         return await this.handleLogin(req);
       default:
         return NextResponse.json(
@@ -174,7 +192,7 @@ export class AuthHandler {
       case "GET":
         return await this.handleGetRequest(req);
       case "POST":
-        return await this.handleGetRequest(req);
+        return await this.handlePostRequest(req);
       default:
         return NextResponse.json({ message: "UnImplemented method" });
     }

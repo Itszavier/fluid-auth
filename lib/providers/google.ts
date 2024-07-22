@@ -15,7 +15,7 @@ export class GoogleProvider extends BaseProvider {
   authClient: Common.OAuth2Client;
 
   constructor(config: GoogleProviderConfig) {
-    super("google");
+    super("google", { isOAuthProvider: true });
 
     this.config = config;
 
@@ -46,12 +46,15 @@ export class GoogleProvider extends BaseProvider {
 
       this.authClient.setCredentials(tokens);
 
-      const response = await fetch("https://www.googleapis.com/oauth2/v2/userinfo", {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${tokens.access_token}`,
-        },
-      });
+      const response = await fetch(
+        "https://www.googleapis.com/oauth2/v2/userinfo",
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${tokens.access_token}`,
+          },
+        }
+      );
 
       if (!response.ok) {
         console.log(await response.json());

@@ -9,6 +9,11 @@
 button {
   padding: 8px;
   border: none;
-  font-size: 20px;
+  font-size: 18px;
   cursor: pointer;
+  border-radius: 8px;
+  background-color: black;
+  color: white;
+  height: 60px;
+  width: 200px;
 }

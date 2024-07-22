@@ -29,7 +29,7 @@ export interface ISignUpOption extends IOptionType {
  * @example
  * // Example usage:
  * SignUp("google", { redirect: "/dashboard", customParam: "value" });
- * 
+ *
  */
 export function SignIn(provider: string, options?: ISignUpOption): void {
   const baseUrl = window.location.origin;
@@ -73,4 +73,9 @@ export function SignOut(options?: IOptionType): void {
     });
 }
 
+interface IData {
+  email: string;
+  password: string;
+}
 
+export function SignInWithCredentials(provider: string, data: IData) {}

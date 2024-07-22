@@ -1,6 +1,6 @@
 /** @format */
 
-import { AuthHandler} from "@/lib/AuthHandler";
+import { AuthHandler } from "@/lib/AuthHandler";
 import { GoogleProvider } from "@/lib/providers";
 import { Session } from "@/lib/session";
 import { NextRequest, NextResponse } from "next/server";
@@ -15,6 +15,7 @@ const Google = new GoogleProvider({
 
 const authHandler = new AuthHandler({
   providers: [Google],
+  origin: process.env.ORIGIN as string,
   session: new Session({
     cookie: {},
     serializeUser: async (user) => {

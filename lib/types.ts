@@ -1,20 +1,14 @@
 /** @format */
 import { NextRequest, NextResponse } from "next/server";
-import { Session } from "./session";
-import { ValueOf } from "next/dist/shared/lib/constants";
-
-export interface Provider {
-  name: string;
-  handleLogin: (req: NextRequest) => Promise<NextResponse>;
-  authorize: (code: string) => Promise<any | null>;
-}
+import { Session } from "./index";
+import { error } from "console";
 
 export interface AuthHandlerConfig {
   /**
    * Your application domain/url
    */
   origin: string;
-  providers?: Provider[];
+  providers?: BaseProvider[];
   session: Session;
 }
 
@@ -65,18 +59,24 @@ export abstract class BaseSessionStore {
   }
 }
 
+export interface BaseProviderRunConfig {
+  isOAuthProvider: boolean;
+}
 /**
  * Abstract class representing a base authentication provider.
  */
 export abstract class BaseProvider {
   name: string;
-
+  runConfig: BaseProviderRunConfig;
+  private session: Session | null = null;
   /**
    * Creates a new instance of BaseProvider.
    * @param {string} name - The name of the provider (used to deside which provide should be called) .
    */
-  constructor(name: string) {
+  constructor(name: string, runConfig: BaseProviderRunConfig) {
     this.name = name;
+    this.runConfig = runConfig;
+    console.log(this.session);
   }
 
   /**
@@ -93,8 +93,31 @@ export abstract class BaseProvider {
    * Authorizes the user using the provided code.
    * @param {string} code - The authorization code.
    * @returns {Promise<any | null>} - A promise that resolves to the user data or null.
-   * @throws {Error} If the method is not implemented.
    */
 
-  async authorize?(code: string): Promise<null | any> {}
+  async authorize(code: string): Promise<null | any> {}
+
+  /**
+   * This function should not be used to set the session; it is automatically used behind the scenes.
+   * @param session - The session to be set.
+   */
+  _setSession(session: Session) {
+    this.session = session;
+  }
+
+  /**
+   * creates a new session and Adds the user to the session.
+   * This method should be used to include user information into the  session.
+   * @param userData - The user data to add to the session.
+   * @returns The updated session object with the user data included.
+   */
+  async persistUserToSession<T>(userData: any): Promise<void> {
+    // Initialize the session if it does not already exist
+    if (!this.session) {
+      throw new Error(
+        "Failed to find session object. Please make sure you have configured the session correctly."
+      );
+    }
+    return await this.session!.createSession(userData);
+  }
 }
