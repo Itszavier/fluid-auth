@@ -45,30 +45,22 @@ export function SignIn(provider: string, options?: ISignUpOption): void {
  * @param options - Optional options for sign-out. Includes `redirect` for post-sign-out redirection.
  *
  * @example
- * // Example usage:
- * SignOut({ redirect: "/home" });
+ *
+ *
  */
-export function SignOut(options?: IOptionType): void {
+export async function SignOut(
+  options?: IOptionType
+): Promise<{ message: string }> {
   // Function to handle user sign-out with optional redirect options
   const { redirect } = options || {};
 
   // Make a request to the backend to log out the user
-  fetch("/api/auth/logout", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-  })
-    .then((response) => response.json())
-    .then(() => {
-      // Redirect to the specified URL or default to home
-      const redirectUrl = redirect || "/";
-      window.location.href = redirectUrl;
-    })
-    .catch((error) => {
-      console.error("Error during sign-out:", error);
-      // Optionally handle sign-out errors, e.g., show an error message
-    });
+  const response = await fetch("/api/auth/logout");
+
+  if (!response.ok) {
+    throw new Error(`SignOut Failed: ${response.statusText} `);
+  }
+  return await response.json();
 }
 
 interface IData {

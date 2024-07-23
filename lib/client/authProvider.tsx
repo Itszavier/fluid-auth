@@ -7,6 +7,7 @@ import {
   useEffect,
   useState,
 } from "react";
+
 import { BaseUser, BaseSession } from "..";
 
 export interface IAuthContext {
@@ -33,7 +34,7 @@ export function useAuth(): IAuthContext {
   const context = useContext(authContext);
 
   if (!context) {
-    throw new Error("useAuth must be used within an AuthProvider");
+    throw new Error("useAuth must be used within AuthProvider");
   }
 
   return context;
@@ -58,12 +59,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
         }
 
         const data = await response.json();
-
-        setUser(data.user); // Assumes data contains user and session fields
+        setUser(data.session?.user); // Assumes data contains user and session fields
         setSession(data.session);
         setAuthenticated(true);
       } catch (error: any) {
-        console.error("Failed to fetch authentication data", error);
         setError(error);
         setUser(null);
         setSession(null);
