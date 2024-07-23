@@ -1,6 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSession } from "../client";
-import { redirect } from "next/dist/server/api-utils";
 
 function isExpired(expirationDate: string | Date): boolean {
   // Create a Date object for the current date and time
@@ -33,22 +31,30 @@ function isProtectedRoute(path: string, patterns: (string | RegExp)[]) {
   });
 }
 
-export function AuthMiddleware(req: NextRequest, options: IOptions) {
-  if (!options || !options.protect) {
-    return NextResponse.next();
-  }
-
-  if (!isProtectedRoute(req.nextUrl.pathname, options.protect)) {
-    console.log("returning");
-    return NextResponse.next();
-  }
-
-  const middleware = async (req: NextRequest) => {
-    console.log("AuthMiddleware invoked");
-
+export function AuthMiddleware(options: IOptions) {
+  return async (req: NextRequest) => {
+    const url = new URL(req.url);
     try {
-      const session = await getSession();
-      console.log("session form auth middlewar", session);
+      if (!options || !options.protect) {
+        return NextResponse.next();
+      }
+
+      if (!isProtectedRoute(req.nextUrl.pathname, options.protect)) {
+        console.log("returning");
+        return NextResponse.next();
+      }
+      const origin = url.origin;
+      console.log(origin);
+      const response = await fetch(`${origin}/api/auth/session`, {
+        method: "GET",
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch session ${response.statusText}`);
+      }
+
+      const session = await response.json();
+      console.log("session form auth middleware", session);
       // Handle case where there is no session
       if (!session) {
         console.log("runing method");
@@ -67,21 +73,19 @@ export function AuthMiddleware(req: NextRequest, options: IOptions) {
       }
 
       // Check if session has expired
-      const expirationDate = new Date(session.expiration);
-      if (isExpired(expirationDate)) {
-        console.log("Session expired, handling cleanup...");
-        // Delete expired session here
-        // For example, clear the session cookie or call a session removal service
-      }
+      //  const expirationDate = new Date(session.expiration);
+      //  if (isExpired(expirationDate)) {
+      //console.log("Session expired, handling cleanup...");
+      // Delete expired session here
+      // For example, clear the session cookie or call a session removal service
+      //}
 
       // Continue with the request if the session is valid
       return NextResponse.next();
     } catch (error) {
       // Handle error (e.g., log it and/or return an error response)
       console.error("AuthMiddleware error:", error);
-      return NextResponse.error();
+      throw error;
     }
   };
-
-  return middleware(req);
 }

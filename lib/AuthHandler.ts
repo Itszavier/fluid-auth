@@ -2,11 +2,30 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { AuthHandlerConfig, BaseProvider } from "./types";
+import { Session } from "./session";
 
 let redirectUrl: string | null = null;
 
+type RedirectUrlFunction = (req: NextRequest) => Promise<string>;
+
+export interface IAuthMiddlewareOptions {
+  redirectUrl?: string | RedirectUrlFunction;
+  authenticate?(req: NextRequest): Promise<NextResponse>;
+  protect?: (string | RegExp)[];
+}
+
+function isProtectedRoute(path: string, patterns: (string | RegExp)[]) {
+  return patterns.some((pattern) => {
+    if (typeof pattern === "string") {
+      return path.startsWith(pattern);
+    }
+    return pattern.test(path);
+  });
+}
+
 export class AuthHandler {
   private config: AuthHandlerConfig;
+  session: Session;
 
   constructor(config: AuthHandlerConfig) {
     if (!config) {
@@ -22,6 +41,7 @@ export class AuthHandler {
     }*/
 
     this.config = config;
+    this.session = config.session;
     this.addSessionToProvider();
   }
 
@@ -212,5 +232,55 @@ export class AuthHandler {
       default:
         return NextResponse.json({ message: "UnImplemented method" });
     }
+  }
+
+  Auth(options: IAuthMiddlewareOptions) {
+    return async (req: NextRequest) => {
+      try {
+        if (!options || !options.protect) {
+          return NextResponse.next();
+        }
+
+        if (!isProtectedRoute(req.nextUrl.pathname, options.protect)) {
+          console.log("returning");
+          return NextResponse.next();
+        }
+
+        const session = await this.session.getSession();
+
+        console.log("session form auth middleware", session);
+
+        if (!session) {
+          console.log("runing method");
+          if (typeof options.authenticate === "function") {
+            return await options.authenticate(req);
+          }
+
+          if (typeof options.redirectUrl === "function") {
+            const redirectUrl = await options.redirectUrl(req);
+            return NextResponse.redirect(new URL(redirectUrl, req.url));
+          }
+
+          return NextResponse.redirect(
+            new URL(options.redirectUrl || "/", req.url)
+          );
+        }
+
+        // Check if session has expired
+        //  const expirationDate = new Date(session.expiration);
+        //  if (isExpired(expirationDate)) {
+        //console.log("Session expired, handling cleanup...");
+        // Delete expired session here
+        // For example, clear the session cookie or call a session removal service
+        //}
+
+        // Continue with the request if the session is valid
+        return NextResponse.next();
+      } catch (error) {
+        // Handle error (e.g., log it and/or return an error response)
+        console.error("AuthMiddleware error:", error);
+        return NextResponse.error();
+      }
+    };
   }
 }

@@ -91,11 +91,18 @@ export async function SignInWithCredentials(provider: string, data: IData) {
 }
 
 export async function getSession(): Promise<BaseSession> {
-  const response = await fetch("/api/auth/session");
+  try {
+    const url = `/api/auth/session`;
+    console.log(url);
+    const response = await fetch(url);
 
-  if (!response.ok) {
-    throw new Error(`Failed to fetch session: ${response.statusText}`);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch session: ${response.statusText}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching session:", error);
+    throw error; // Re-throw error after logging
   }
-
-  return await response.json();
 }
