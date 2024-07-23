@@ -6,6 +6,7 @@ export default function Navbar() {
       w={"100%"}
       padding={"18px"}
       bg={"black"}
+      zIndex={999}
       color={"white"}
       display={"flex"}
       alignItems={"center"}

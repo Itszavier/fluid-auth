@@ -2,6 +2,7 @@
 
 import { useAuth } from "@/lib/client/authProvider";
 import { Box, Text } from "@chakra-ui/react";
+import Logout from "../components/logout";
 
 export default function Profile() {
   const { user, session, isLoading, error, authenticated } = useAuth();
@@ -12,8 +13,14 @@ export default function Profile() {
   }
 
   return (
-    <Box pt={"68px"} display={"flex"} justifyContent={"center"}>
+    <Box
+      pt={"68px"}
+      flexDirection={"column"}
+      display={"flex"}
+      alignItems={"center"}
+    >
       <Box p={"10px"}>hello {user?.name}</Box>
+      <Logout />
     </Box>
   );
 }
