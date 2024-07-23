@@ -20,19 +20,26 @@ export interface ISessionOption {
 }
 
 export class MemoryStore extends BaseSessionStore {
+  data = new Map<string, BaseSession>();
   constructor() {
     super();
   }
 
-  async createSession(id: string, session: BaseSession): Promise<void> {}
+  async createSession(id: string, session: BaseSession): Promise<void> {
+    this.data.set(id, session);
+    console.log("data after create", this.data);
+  }
 
-  // async getSession(sessionId: string) {}
+  async getSession(sessionId: string): Promise<BaseSession | null> {
+    return this.data.get(sessionId) || null;
+  }
 
   async deleteSession(sessionId: string): Promise<void> {}
 }
 
 export class Session {
   options: ISessionOption;
+  store = new MemoryStore();
 
   constructor(options: ISessionOption) {
     const threeDays = 3 * 24 * 60 * 60 * 1000;
@@ -54,6 +61,7 @@ export class Session {
   }
 
   async createSession(user: any): Promise<void> {
+    console.log("create session", user);
     const cookieStore = cookies();
 
     const id = randomBytes(18).toString("hex");
@@ -65,11 +73,15 @@ export class Session {
     cookieStore.set(this.options.cookie.name as string, id, {
       ...this.options.cookie,
     });
+
+    console.log(this.store.data);
   }
 
   async getSession(): Promise<BaseSession | null> {
-    // const sessionId = cookies().get(this.options.cookie.name as string)?.value;
-
+    const sessionId = cookies().get(this.options.cookie.name as string)?.value;
+    console.log("sessionID: ", sessionId);
+    const session = await this.store.getSession(sessionId as string);
+    console.log("getSession", session);
     return {
       expiration: new Date(),
       user: await this.options.deserializeUser!("edwefdewfdewfdew"),
