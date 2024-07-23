@@ -16,7 +16,7 @@ export type BaseUser = any;
 
 export interface BaseSession<User = BaseUser> {
   id: string;
-  expires: Date;
+  expiration: Date;
   maxAge?: number;
   user: User;
   [key: string]: any;

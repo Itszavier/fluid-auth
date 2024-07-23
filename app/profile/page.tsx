@@ -6,7 +6,7 @@ import Logout from "../components/logout";
 
 export default function Profile() {
   const { user, session, isLoading, error, authenticated } = useAuth();
-  console.log(user, session, error, isLoading, authenticated);
+  console.log(user, session);
 
   if (isLoading) {
     return <Box pt={"68px"}>...loading</Box>;

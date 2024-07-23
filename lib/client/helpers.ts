@@ -1,5 +1,7 @@
 /** @format */
 
+import { BaseSession } from "..";
+
 // Basic options interface for handling redirects
 export interface IOptionType {
   /**
@@ -86,4 +88,14 @@ export async function SignInWithCredentials(provider: string, data: IData) {
 
   const result = await response.json();
   return result;
+}
+
+export async function getSession(): Promise<BaseSession> {
+  const response = await fetch("/api/auth/session");
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch session: ${response.statusText}`);
+  }
+
+  return await response.json();
 }
