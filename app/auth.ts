@@ -10,10 +10,6 @@ const user = {
 
 const Local = new LocalProvider({
   async verify(email, password) {
-    if (email !== user.email && password !== user.password) {
-      throw Error("Invalid Email or password");
-    }
-
     return user;
   },
 });
@@ -21,10 +17,12 @@ const Local = new LocalProvider({
 const session = new Session({
   cookie: {},
   async serializeUser(user) {
+    console.log("serializedUser");
     return user.id;
   },
 
   async deserializeUser(id) {
+    console.log("serializedUser");
     return user;
   },
 });

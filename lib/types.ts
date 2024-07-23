@@ -15,7 +15,6 @@ export interface AuthHandlerConfig {
 export type BaseUser = any;
 
 export interface BaseSession<User = BaseUser> {
-  id: string;
   expiration: Date;
   maxAge?: number;
   user: User;
@@ -34,7 +33,7 @@ export abstract class BaseSessionStore {
    * @param {BaseSession} session - The session to be created and stored.
    * @returns {Promise<void | Error>} A promise that resolves to void or throws an error.
    */
-  async createSession(session: BaseSession): Promise<void | Error> {
+  async createSession(id: string, session: BaseSession): Promise<void | Error> {
     throw new Error("Function not implemented");
   }
 
@@ -118,6 +117,7 @@ export abstract class BaseProvider {
         "Failed to find session object. Please make sure you have configured the session correctly."
       );
     }
-    return await this.session!.createSession(userData);
+    const newSession = await this.session!.createSession(userData);
+    console.log(`updated session ${this.session}`);
   }
 }

@@ -16,6 +16,7 @@ import { LoginButton } from "./buttons";
 import { FormEvent, useState } from "react";
 import { SignInWithCredentials } from "@/lib/client";
 import { useRouter } from "next/navigation";
+
 export default function Login() {
   const router = useRouter();
   const [email, setEmail] = useState("");
@@ -31,8 +32,8 @@ export default function Login() {
         email,
         password,
       });
-      router.push("/profile");
       console.log(response);
+      router.push("/profile");
     } catch (error) {
       console.error("local login", error);
     }

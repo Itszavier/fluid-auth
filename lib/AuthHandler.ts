@@ -25,7 +25,6 @@ function isProtectedRoute(path: string, patterns: (string | RegExp)[]) {
 
 export class AuthHandler {
   private config: AuthHandlerConfig;
-  session: Session;
 
   constructor(config: AuthHandlerConfig) {
     if (!config) {
@@ -41,7 +40,6 @@ export class AuthHandler {
     }*/
 
     this.config = config;
-    this.session = config.session;
     this.addSessionToProvider();
   }
 
@@ -246,7 +244,7 @@ export class AuthHandler {
           return NextResponse.next();
         }
 
-        const session = await this.session.getSession();
+        const session = await this.config.session.getSession();
 
         console.log("session form auth middleware", session);
 

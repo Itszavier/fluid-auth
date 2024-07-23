@@ -20,29 +20,19 @@ export interface ISessionOption {
 }
 
 export class MemoryStore extends BaseSessionStore {
-  private sessionStore: Map<string, BaseSession>;
-
   constructor() {
     super();
-    this.sessionStore = new Map();
   }
 
-  async createSession(session: BaseSession): Promise<void> {
-    this.sessionStore.set(session.id, session);
-  }
+  async createSession(id: string, session: BaseSession): Promise<void> {}
 
-  async getSession(sessionId: string): Promise<BaseSession | null> {
-    return this.sessionStore.get(sessionId) || null;
-  }
+  // async getSession(sessionId: string) {}
 
-  async deleteSession(sessionId: string): Promise<void> {
-    this.sessionStore.delete(sessionId);
-  }
+  async deleteSession(sessionId: string): Promise<void> {}
 }
 
 export class Session {
-  private options: ISessionOption;
-  private store: BaseSessionStore;
+  options: ISessionOption;
 
   constructor(options: ISessionOption) {
     const threeDays = 3 * 24 * 60 * 60 * 1000;
@@ -61,8 +51,6 @@ export class Session {
         maxAge: options.cookie.maxAge,
       },
     };
-
-    this.store = this.options.store || new MemoryStore();
   }
 
   async createSession(user: any): Promise<void> {
@@ -74,44 +62,19 @@ export class Session {
       ? await this.options.serializeUser(user) // await this.options.serializeUser(user)
       : user;
 
-    await this.store.createSession({
-      id,
-      expiration: this.options.cookie.expires as Date,
-      user: serializedUser,
-    });
-
     cookieStore.set(this.options.cookie.name as string, id, {
       ...this.options.cookie,
-      maxAge: this.options.cookie.maxAge,
-      expires: this.options.cookie.expires,
     });
-
-    console.log("create session", user);
   }
 
   async getSession(): Promise<BaseSession | null> {
-    const sessionId = cookies().get(this.options.cookie.name as string)?.value;
+    // const sessionId = cookies().get(this.options.cookie.name as string)?.value;
 
-    if (!sessionId) {
-      return null;
-    }
-
-    const session = await this.store.getSession(sessionId);
-
-    if (session && this.options.deserializeUser) {
-      session.user = await this.options.deserializeUser(session.user);
-    }
-
-    return session;
+    return {
+      expiration: new Date(),
+      user: await this.options.deserializeUser!("edwefdewfdewfdew"),
+    } as BaseSession;
   }
 
-  async deleteSession(): Promise<void> {
-    const sessionId = cookies().get(this.options.cookie.name as string)?.value;
-
-    if (!sessionId) {
-      return;
-    }
-
-    await this.store.deleteSession(sessionId);
-  }
+  async deleteSession(): Promise<void> {}
 }
