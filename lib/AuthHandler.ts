@@ -37,6 +37,7 @@ export class AuthHandler {
    * @returns The Next.js response object
    */
 
+  // handlers
   private async handleLogin(req: NextRequest): Promise<NextResponse> {
     const providerName = req.nextUrl.searchParams.get("provider");
     redirectUrl = req.nextUrl.searchParams.get("redirecturl");

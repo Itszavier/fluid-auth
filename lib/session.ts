@@ -76,7 +76,7 @@ export class Session {
 
     await this.store.createSession({
       id,
-      expires: this.options.cookie.expires as Date,
+      expiration: this.options.cookie.expires as Date,
       user: serializedUser,
     });
 

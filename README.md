@@ -11,6 +11,16 @@ Inspired by the best practices of Passport.js and NextAuth.js, FluidAuth is desi
 - **Built-in Providers**: Includes built-in support for popular providers like Google, Facebook, and GitHub for quick and easy setup.
 - **Email and Password Authentication**: Support for traditional email and password authentication to cater to diverse user needs.
 
+## Contributing
+
+We welcome contributions from everyone!
+
+This package is fully open source, and we're excited to see how you can help make it even cooler.
+
+For information on how to get started, please refer to the [contributing guide](contributing.md).
+
+Please adhere to our [code of conduct](code-of-conduct.md) while contributing.
+
 ## Lessons Learned
 
 Creating this package has been a tremendous learning journey. Honestly, I started with very little knowledge about authentication, but through the process of building this package, I have learned a great deal. I've gained insights into implementing OAuth2, understanding security vulnerabilities, and applying best practices to address them.
