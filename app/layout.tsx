@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
+import { ChakraProvider } from "@chakra-ui/react";
 import "./global.css";
-
-
+import Navbar from "./components/navbar";
+import { AuthProvider } from "@/lib/client/authProvider";
 
 export const metadata: Metadata = {
   title: "next auth libaray",
@@ -15,7 +16,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <ChakraProvider>
+          <AuthProvider>
+            <Navbar />
+            {children}
+          </AuthProvider>
+        </ChakraProvider>
+      </body>
     </html>
   );
 }

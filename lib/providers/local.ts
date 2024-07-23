@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { BaseProvider, BaseUser } from "../index";
 
-interface LocalProviderConfig {
-  verify<User = BaseUser>(email: string, password: string): Promise<User>;
+export interface LocalProviderConfig {
+  verify(email: string, password: string): Promise<any>;
 }
 
-class LocalProvider extends BaseProvider {
+export class LocalProvider extends BaseProvider {
   config: LocalProviderConfig;
 
   constructor(config: LocalProviderConfig) {

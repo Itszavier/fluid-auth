@@ -1,9 +1,26 @@
 /** @format */
 
 import { AuthHandler } from "@/lib/AuthHandler";
-import { GoogleProvider } from "@/lib/providers";
+import { GoogleProvider, LocalProvider } from "@/lib/providers";
 import { Session } from "@/lib/session";
 import { NextRequest, NextResponse } from "next/server";
+
+const user = {
+  id: "fewffewfewfewffwfewfwefew",
+  name: "Imani Brown",
+  email: "imanibrown421@gmail.com",
+  password: "test",
+};
+
+const Local = new LocalProvider({
+  async verify(email, password) {
+    if (email !== user.email && password !== user.password) {
+      throw Error("Invalid Email or password");
+    }
+
+    return user;
+  },
+});
 
 const Google = new GoogleProvider({
   clientId: process.env.GOOGLE_CLIENT_ID as string,
@@ -14,7 +31,7 @@ const Google = new GoogleProvider({
 });
 
 const authHandler = new AuthHandler({
-  providers: [Google],
+  providers: [Local],
   origin: process.env.ORIGIN as string,
   session: new Session({
     cookie: {},
@@ -26,7 +43,7 @@ const authHandler = new AuthHandler({
 
     deserializeUser: async (userId: string) => {
       // find the user in the database
-      return userId;
+      return user;
     },
   }),
 });

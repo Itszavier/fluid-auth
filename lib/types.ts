@@ -111,7 +111,7 @@ export abstract class BaseProvider {
    * @param userData - The user data to add to the session.
    * @returns The updated session object with the user data included.
    */
-  async persistUserToSession<T>(userData: any): Promise<void> {
+  async persistUserToSession(userData: any): Promise<void> {
     // Initialize the session if it does not already exist
     if (!this.session) {
       throw new Error(

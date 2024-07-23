@@ -1,6 +1,7 @@
 /** @format */
 "use client";
 import { SignIn } from "@/lib/client/helpers";
+import { Button } from "@chakra-ui/react";
 import { useRouter } from "next/navigation";
 
 export function LoginButton(props: { provider: string; label: string }) {
@@ -10,5 +11,9 @@ export function LoginButton(props: { provider: string; label: string }) {
     SignIn("google", { redirect: "/" });
   };
 
-  return <button onClick={handleClick}>Login with {props.label}</button>;
+  return (
+    <Button w={"100%"} bg={"black"} color="white" onClick={handleClick}>
+      Login with {props.label}
+    </Button>
+  );
 }

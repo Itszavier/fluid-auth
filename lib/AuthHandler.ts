@@ -153,29 +153,44 @@ export class AuthHandler {
    * @returns The Next.js response object
    */
 
+  private async handleGetSession(req: NextRequest): Promise<NextResponse> {
+    try {
+      const session = this.config.session;
+
+      const data = await session.getSession();
+
+      return NextResponse.json({
+        authenticated: !!data,
+        session: data,
+      });
+    } catch (error) {
+      return NextResponse.json({
+        message: "Internal Error failed to fetch session",
+      });
+    }
+  }
+
   private async handleGetRequest(req: NextRequest): Promise<NextResponse> {
     const route = this.getRoute(req);
 
     switch (true) {
       case route === "signin":
         return await this.handleLogin(req);
+      case route === "session":
+        return await this.handleGetSession(req);
       case route.startsWith("callback"):
         return await this.handleCallback(req, route);
       case route === "logout":
         return await this.handleLogout(req);
       default:
-        const session = await this.config.session.getSession();
-        if (session) {
-          return NextResponse.json({ user: session.user, session });
-        }
         return NextResponse.json({ message: "Not Found" }, { status: 404 });
     }
   }
 
   private async handlePostRequest(req: NextRequest): Promise<NextResponse> {
     const route = this.getRoute(req);
-    switch (route) {
-      case "signin":
+    switch (true) {
+      case route === "signin":
         return await this.handleLogin(req);
       default:
         return NextResponse.json(

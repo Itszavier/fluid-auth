@@ -70,6 +70,16 @@ export class Session {
 
     const id = randomBytes(18).toString("hex");
 
+    const serializedUser = this.options.serializeUser
+      ? await this.options.serializeUser(user) // await this.options.serializeUser(user)
+      : user;
+
+    await this.store.createSession({
+      id,
+      expires: this.options.cookie.expires as Date,
+      user: serializedUser,
+    });
+
     cookieStore.set(this.options.cookie.name as string, id, {
       ...this.options.cookie,
       maxAge: this.options.cookie.maxAge,
@@ -77,18 +87,6 @@ export class Session {
     });
 
     console.log("create session", user);
-
-    const serializedUser = this.options.serializeUser
-      ? await this.options.serializeUser(user) // await this.options.serializeUser(user)
-      : user;
-
-    console.log("serializedUser", serializedUser);
-
-    await this.store.createSession({
-      id,
-      expires: this.options.cookie.expires as Date,
-      user: serializedUser,
-    });
   }
 
   async getSession(): Promise<BaseSession | null> {

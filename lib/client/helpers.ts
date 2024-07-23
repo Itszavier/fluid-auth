@@ -74,6 +74,24 @@ export function SignOut(options?: IOptionType): void {
 interface IData {
   email: string;
   password: string;
+  redirectUrl?: string;
 }
 
-export function SignInWithCredentials(provider: string, data: IData) {}
+export async function SignInWithCredentials(provider: string, data: IData) {
+  const response = await fetch(`/api/auth/signin?provider=${provider}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    // Handle errors here
+    const errorData = await response.json();
+    throw new Error(errorData.message || "Failed to sign in");
+  }
+
+  const result = await response.json();
+  return result;
+}

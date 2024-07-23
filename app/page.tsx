@@ -2,19 +2,33 @@
 
 import Image from "next/image";
 import styles from "./page.module.css";
-import { LoginButton } from "./componets/buttons";
+import { LoginButton } from "./components/buttons";
+import {
+  Box,
+  Flex,
+  FormControl,
+  FormHelperText,
+  FormLabel,
+  Heading,
+  Input,
+  Divider,
+  Text,
+} from "@chakra-ui/react";
+import Login from "./components/login";
 
 export default function Home() {
   return (
-    <main className={styles.main}>
-      <form className={"form"}>
-        <input placeholder="Email" />
-        <input placeholder="Password" />
+    <Box
+      as="main"
+      pt={"68px"}
+      display={"flex"}
+      justifyContent={"center"}
+      height={"100dvh"}
+      bg={"gray.100"}
 
-        <div className="bottom">
-          <LoginButton label="Google" provider="google" />
-        </div>
-      </form>
-    </main>
+      //  bgGradient="linear(800deg, #ff9a9e, #fad0c4)"
+    >
+      <Login />
+    </Box>
   );
 }
