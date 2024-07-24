@@ -1,27 +1,11 @@
 /** @format */
-
 import { NextRequest, NextResponse } from "next/server";
-import { AuthHandlerConfig, BaseProvider } from "./types";
-import { Session } from "./session";
+import { AuthHandlerConfig, AuthMiddlewareOptions } from "./core/types";
+import { Session } from "./core/session";
+import { BaseProvider } from "./core/base";
+import { isProtectedRoute } from "./utils/dev";
 
 let redirectUrl: string | null = null;
-
-type RedirectUrlFunction = (req: NextRequest) => Promise<string>;
-
-export interface IAuthMiddlewareOptions {
-  redirectUrl?: string | RedirectUrlFunction;
-  authenticate?(req: NextRequest): Promise<NextResponse>;
-  protect?: (string | RegExp)[];
-}
-
-function isProtectedRoute(path: string, patterns: (string | RegExp)[]) {
-  return patterns.some((pattern) => {
-    if (typeof pattern === "string") {
-      return path.startsWith(pattern);
-    }
-    return pattern.test(path);
-  });
-}
 
 export class AuthHandler {
   private config: AuthHandlerConfig;
@@ -69,7 +53,7 @@ export class AuthHandler {
 
     try {
       const provider = this.getProvider(providerName);
-      return await provider.handleLogin(req);
+      return await provider.handleLogin(req, this.persistData);
     } catch (error: any) {
       console.error("Error on the login route:", error);
       return NextResponse.json({ message: error.message }, { status: 500 });
@@ -180,13 +164,19 @@ export class AuthHandler {
 
       return NextResponse.json({
         authenticated: !!data,
-        session: data,
+        user: data?.user || null,
+        expiration: data?.expiration || null,
       });
+      
     } catch (error) {
       return NextResponse.json({
         message: "Internal Error failed to fetch session",
       });
     }
+  }
+
+  async persistData(data: any) {
+    this.config.session.createSession(data);
   }
 
   private async handleGetRequest(req: NextRequest): Promise<NextResponse> {
@@ -232,7 +222,7 @@ export class AuthHandler {
     }
   }
 
-  Auth(options: IAuthMiddlewareOptions) {
+  Auth(options: AuthMiddlewareOptions) {
     return async (req: NextRequest) => {
       try {
         if (!options || !options.protect) {

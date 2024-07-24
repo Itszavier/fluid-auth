@@ -1,29 +1,15 @@
-/** @format */
 import { NextRequest, NextResponse } from "next/server";
-import { Session } from "./index";
-import { error } from "console";
-
-export interface AuthHandlerConfig {
-  /**
-   * Your application domain/url
-   */
-  origin: string;
-  providers?: BaseProvider[];
-  session: Session;
-}
+import { Session } from "./session";
 
 export type BaseUser = any;
 
-export interface BaseSession<User = BaseUser> {
+export interface BaseSessionData<User = BaseUser> {
   expiration: Date;
   maxAge?: number;
   user: User;
   [key: string]: any;
 }
 
-/**
- * Sole responsibility for interacting with the sessions in a database.
- */
 export abstract class BaseSessionStore {
   constructor() {}
 
@@ -33,7 +19,10 @@ export abstract class BaseSessionStore {
    * @param {BaseSession} session - The session to be created and stored.
    * @returns {Promise<void | Error>} A promise that resolves to void or throws an error.
    */
-  async createSession(id: string, session: BaseSession): Promise<void | Error> {
+  async saveSession(
+    id: string,
+    session: BaseSessionData
+  ): Promise<void | Error> {
     throw new Error("Function not implemented");
   }
 
@@ -43,7 +32,7 @@ export abstract class BaseSessionStore {
    * @param {string} sessionId - The ID of the session to retrieve.
    * @returns {Promise<BaseSession | null>} A promise that resolves to the session if found, or null if not found.
    */
-  async getSession(sessionId: string): Promise<BaseSession | null> {
+  async getSession(sessionId: string): Promise<BaseSessionData | null> {
     throw new Error("Function not implemented");
   }
 
@@ -67,7 +56,7 @@ export interface BaseProviderRunConfig {
 export abstract class BaseProvider {
   name: string;
   runConfig: BaseProviderRunConfig;
-  private session: Session | null = null;
+  protected _session: Session | null = null;
   /**
    * Creates a new instance of BaseProvider.
    * @param {string} name - The name of the provider (used to deside which provide should be called) .
@@ -75,7 +64,6 @@ export abstract class BaseProvider {
   constructor(name: string, runConfig: BaseProviderRunConfig) {
     this.name = name;
     this.runConfig = runConfig;
-    console.log(this.session);
   }
 
   /**
@@ -84,7 +72,10 @@ export abstract class BaseProvider {
    * @returns {Promise<NextResponse>} - A promise that resolves to the response.
    * @throws {Error} If the method is not implemented.
    */
-  handleLogin(req: NextRequest): Promise<NextResponse> {
+  handleLogin(
+    req: NextRequest,
+    persist?: (data: any) => Promise<void>
+  ): Promise<NextResponse> {
     throw new Error("handleLogin function not implemented");
   }
 
@@ -101,7 +92,7 @@ export abstract class BaseProvider {
    * @param session - The session to be set.
    */
   _setSession(session: Session) {
-    this.session = session;
+    this._session = session;
   }
 
   /**
@@ -110,14 +101,37 @@ export abstract class BaseProvider {
    * @param userData - The user data to add to the session.
    * @returns The updated session object with the user data included.
    */
-  async persistUserToSession(userData: any): Promise<void> {
+  async persistUserToSession(newSession: any): Promise<void> {
     // Initialize the session if it does not already exist
-    if (!this.session) {
+    console.log(
+      `[BaseProvider] Persisting user to session. User data:`,
+      newSession
+    );
+
+    // Initialize the session if it does not already exist
+    if (!this._session) {
+      console.error(
+        `[BaseProvider] Failed to find session object. Please make sure you have configured the session correctly.`
+      );
       throw new Error(
         "Failed to find session object. Please make sure you have configured the session correctly."
       );
     }
-    const newSession = await this.session!.createSession(userData);
-    console.log(`updated session ${this.session}`);
+    try {
+      console.log(
+        `[BaseProvider] Creating session for user with data:`,
+        newSession
+      );
+
+      await this._session.createSession(newSession);
+
+      console.log(`[BaseProvider] Updated session for user `);
+    } catch (error: any) {
+      console.error(
+        `[BaseProvider] Error persisting user to session: ${error.message}`,
+        error
+      );
+      throw error;
+    }
   }
 }

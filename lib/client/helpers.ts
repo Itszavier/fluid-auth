@@ -1,6 +1,6 @@
 /** @format */
 
-import { BaseSession } from "..";
+import { BaseSessionData } from "../core/base";
 
 // Basic options interface for handling redirects
 export interface IOptionType {
@@ -90,7 +90,7 @@ export async function SignInWithCredentials(provider: string, data: IData) {
   return result;
 }
 
-export async function getSession(): Promise<BaseSession> {
+export async function getSession(): Promise<BaseSessionData> {
   try {
     const url = `/api/auth/session`;
     console.log(url);

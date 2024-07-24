@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { BaseProvider, BaseUser } from "../index";
+import { BaseProvider, BaseUser } from "../core/base";
 
 export interface LocalProviderConfig {
   verify(email: string, password: string): Promise<any>;
@@ -7,6 +7,7 @@ export interface LocalProviderConfig {
 
 export class LocalProvider extends BaseProvider {
   config: LocalProviderConfig;
+  data: any;
 
   constructor(config: LocalProviderConfig) {
     super("local", { isOAuthProvider: false });
@@ -14,7 +15,10 @@ export class LocalProvider extends BaseProvider {
     this.config = config;
   }
 
-  async handleLogin(req: NextRequest): Promise<NextResponse<unknown>> {
+  async handleLogin(
+    req: NextRequest,
+    persist: any
+  ): Promise<NextResponse<unknown>> {
     const body = await req.json();
 
     if (!body.email) {

@@ -5,8 +5,7 @@ import { Box, Text } from "@chakra-ui/react";
 import Logout from "../components/logout";
 
 export default function Profile() {
-  const { user, session, isLoading, error, authenticated } = useAuth();
-  console.log(user, session);
+  const { auth, isLoading } = useAuth();
 
   if (isLoading) {
     return <Box pt={"68px"}>...loading</Box>;
@@ -19,8 +18,18 @@ export default function Profile() {
       display={"flex"}
       alignItems={"center"}
     >
-      <Box p={"10px"}>hello {user?.name}</Box>
-      <Logout />
+      <Box
+        mt={"20px"}
+        p={"10px"}
+        width={"530px"}
+        boxShadow={"md"}
+        borderRadius={"10px"}
+      >
+        hello {auth.user?.name}
+        <Box mt={"8px"}>
+          <Logout />
+        </Box>
+      </Box>
     </Box>
   );
 }
