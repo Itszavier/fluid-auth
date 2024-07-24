@@ -1,15 +1,10 @@
+/** @format */
+
 "use client";
 
-import {
-  ReactNode,
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-} from "react";
+import { ReactNode, createContext, useContext, useEffect, useState } from "react";
 
 import { BaseUser, BaseSessionData } from "../core/base";
-import { useRouter } from "next/navigation";
 
 interface Auth {
   user: BaseUser | null;
@@ -52,7 +47,6 @@ export function useAuth(): IAuthContext {
 export function AuthProvider({ children }: AuthProviderProps) {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<Error | null>(null);
-  const router = useRouter();
 
   const [auth, setAuth] = useState<Auth>({
     user: null,
@@ -70,7 +64,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const data: FetchData = await response.json();
       console.log("Fetched auth data:", data); // Debugging log
       setAuth({
-        user: data.user || null,
+        user: data.user,
         expiration: data.expiration ? new Date(data.expiration) : null,
         authenticated: data.authenticated,
       });
@@ -83,6 +77,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   };
 
   useEffect(() => {
+    console.log("use effect run");
     fetchAuthData();
   }, []);
 

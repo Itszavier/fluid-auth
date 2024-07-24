@@ -17,7 +17,7 @@ export default function Logout() {
   };
 
   return (
-    <Button w={"200px"} border={"1px"} onClick={handleClick}>
+    <Button w={"200px"} colorScheme="blue" onClick={handleClick}>
       logout
     </Button>
   );

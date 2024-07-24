@@ -1,3 +1,5 @@
+/** @format */
+
 import type { Metadata } from "next";
 import { ChakraProvider } from "@chakra-ui/react";
 import "./global.css";

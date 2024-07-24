@@ -1,3 +1,5 @@
+/** @format */
+
 "use client";
 
 import { useAuth } from "@/lib/client/authProvider";
@@ -17,18 +19,18 @@ export default function Profile() {
       flexDirection={"column"}
       display={"flex"}
       alignItems={"center"}
+      bg={"gray.100"}
+      height={"100vh"}
     >
-      <Box
-        mt={"20px"}
-        p={"10px"}
-        width={"530px"}
-        boxShadow={"md"}
-        borderRadius={"10px"}
-      >
-        hello {auth.user?.name}
+      <Box mt={"20px"} p={"10px"} width={"530px"} bg={"gray.200"} borderRadius={"1px"}>
+        name: {auth.user?.name}
         <Box mt={"8px"}>
           <Logout />
         </Box>
+      </Box>
+      
+      <Box mt={"20px"} p={"10px"} width={"530px"} bg={"gray.200"} borderRadius={"1px"}>
+        {JSON.stringify(auth)}
       </Box>
     </Box>
   );

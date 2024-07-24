@@ -73,5 +73,21 @@ export class Session {
     return session;
   }
 
-  async deleteSession(): Promise<void> {}
+  async deleteSession(): Promise<void> {
+    const sessionId = cookies().get("auth")?.value;
+
+    console.log("deleting session with ID", sessionId);
+
+    if (cookies().has("auth")) {
+      console.log("deleted auth cookie");
+      cookies().delete("auth");
+    }
+
+    if (!sessionId) {
+      console.log("failed to delete session id is null or undefined", sessionId);
+      return;
+    }
+
+    await this.store.deleteSession(sessionId);
+  }
 }
