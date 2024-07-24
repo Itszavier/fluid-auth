@@ -33,9 +33,7 @@ export class Session {
       cookie: {
         name: options.cookie.name || "auth",
         expires: options.cookie.expires || defaultExpires,
-        sameSite: options.cookie.sameSite || "strict",
-        httpOnly: options.cookie.httpOnly ?? true,
-        secure: options.cookie.secure ?? true,
+        sameSite: options.cookie.sameSite || "none",
         path: options.cookie.path,
         domain: options.cookie.domain,
         maxAge: options.cookie.maxAge,
@@ -44,31 +42,28 @@ export class Session {
   }
 
   async createSession(user: any): Promise<void> {
-    console.log("create session", user);
-    const cookieStore = cookies();
-
     const id = randomBytes(18).toString("hex");
 
     const serializedUser = this.options.serializeUser
       ? await this.options.serializeUser(user) // await this.options.serializeUser(user)
       : user;
 
-    cookieStore.set(this.options.cookie.name as string, id, {
+    cookies().set("auth", id, {
       ...this.options.cookie,
     });
 
-    console.log(this.store.data);
+    this.store.saveSession(id, {
+      expiration: new Date(),
+      user: serializedUser,
+    });
   }
 
   async getSession(): Promise<BaseSessionData | null> {
-    const sessionId = cookies().get(this.options.cookie.name as string)?.value;
+    const sessionId = cookies().get("auth")?.value;
     console.log("sessionID: ", sessionId);
     const session = await this.store.getSession(sessionId as string);
     console.log("getSession", session);
-    return {
-      expiration: new Date(),
-      user: await this.options.deserializeUser!("edwefdewfdewfdew"),
-    } as BaseSessionData;
+    return session;
   }
 
   async deleteSession(): Promise<void> {}
