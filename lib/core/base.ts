@@ -1,29 +1,15 @@
-/** @format */
 import { NextRequest, NextResponse } from "next/server";
-import { Session } from "./index";
-import { error } from "console";
-
-export interface AuthHandlerConfig {
-  /**
-   * Your application domain/url
-   */
-  origin: string;
-  providers?: BaseProvider[];
-  session: Session;
-}
+import { Session } from "./session";
 
 export type BaseUser = any;
 
-export interface BaseSession<User = BaseUser> {
+export interface BaseSessionData<User = BaseUser> {
   expiration: Date;
   maxAge?: number;
   user: User;
   [key: string]: any;
 }
 
-/**
- * Sole responsibility for interacting with the sessions in a database.
- */
 export abstract class BaseSessionStore {
   constructor() {}
 
@@ -33,7 +19,10 @@ export abstract class BaseSessionStore {
    * @param {BaseSession} session - The session to be created and stored.
    * @returns {Promise<void | Error>} A promise that resolves to void or throws an error.
    */
-  async createSession(id: string, session: BaseSession): Promise<void | Error> {
+  async saveSession(
+    id: string,
+    session: BaseSessionData
+  ): Promise<void | Error> {
     throw new Error("Function not implemented");
   }
 
@@ -43,7 +32,7 @@ export abstract class BaseSessionStore {
    * @param {string} sessionId - The ID of the session to retrieve.
    * @returns {Promise<BaseSession | null>} A promise that resolves to the session if found, or null if not found.
    */
-  async getSession(sessionId: string): Promise<BaseSession | null> {
+  async getSession(sessionId: string): Promise<BaseSessionData | null> {
     throw new Error("Function not implemented");
   }
 
@@ -121,3 +110,4 @@ export abstract class BaseProvider {
     console.log(`updated session ${this.session}`);
   }
 }
+

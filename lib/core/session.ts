@@ -1,7 +1,8 @@
 /** @format */
 import { cookies } from "next/headers";
+import { BaseSessionData, BaseSessionStore, BaseUser } from "./base";
+import { MemoryStore } from "./memoryStore";
 import { randomBytes } from "crypto";
-import { BaseSession, BaseSessionStore } from "./types";
 
 export interface ISessionOption {
   store?: BaseSessionStore;
@@ -19,24 +20,6 @@ export interface ISessionOption {
   deserializeUser?: (userData: any) => Promise<any>;
 }
 
-export class MemoryStore extends BaseSessionStore {
-  data = new Map<string, BaseSession>();
-  constructor() {
-    super();
-  }
-
-  async createSession(id: string, session: BaseSession): Promise<void> {
-    this.data.set(id, session);
-    console.log("data after create", this.data);
-  }
-
-  async getSession(sessionId: string): Promise<BaseSession | null> {
-    return this.data.get(sessionId) || null;
-  }
-
-  async deleteSession(sessionId: string): Promise<void> {}
-}
-
 export class Session {
   options: ISessionOption;
   store = new MemoryStore();
@@ -48,7 +31,7 @@ export class Session {
     this.options = {
       ...options,
       cookie: {
-        name: options.cookie.name || "slt_v45_connect_id",
+        name: options.cookie.name || "auth",
         expires: options.cookie.expires || defaultExpires,
         sameSite: options.cookie.sameSite || "strict",
         httpOnly: options.cookie.httpOnly ?? true,
@@ -77,7 +60,7 @@ export class Session {
     console.log(this.store.data);
   }
 
-  async getSession(): Promise<BaseSession | null> {
+  async getSession(): Promise<BaseSessionData | null> {
     const sessionId = cookies().get(this.options.cookie.name as string)?.value;
     console.log("sessionID: ", sessionId);
     const session = await this.store.getSession(sessionId as string);
@@ -85,7 +68,7 @@ export class Session {
     return {
       expiration: new Date(),
       user: await this.options.deserializeUser!("edwefdewfdewfdew"),
-    } as BaseSession;
+    } as BaseSessionData;
   }
 
   async deleteSession(): Promise<void> {}

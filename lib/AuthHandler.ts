@@ -1,27 +1,12 @@
 /** @format */
-
 import { NextRequest, NextResponse } from "next/server";
-import { AuthHandlerConfig, BaseProvider } from "./types";
-import { Session } from "./session";
+import { AuthHandlerConfig, AuthMiddlewareOptions } from "./core/types";
+import { Session } from "./core/session";
+import { BaseProvider } from "./core/base";
 
 let redirectUrl: string | null = null;
 
-type RedirectUrlFunction = (req: NextRequest) => Promise<string>;
 
-export interface IAuthMiddlewareOptions {
-  redirectUrl?: string | RedirectUrlFunction;
-  authenticate?(req: NextRequest): Promise<NextResponse>;
-  protect?: (string | RegExp)[];
-}
-
-function isProtectedRoute(path: string, patterns: (string | RegExp)[]) {
-  return patterns.some((pattern) => {
-    if (typeof pattern === "string") {
-      return path.startsWith(pattern);
-    }
-    return pattern.test(path);
-  });
-}
 
 export class AuthHandler {
   private config: AuthHandlerConfig;
@@ -232,7 +217,7 @@ export class AuthHandler {
     }
   }
 
-  Auth(options: IAuthMiddlewareOptions) {
+  Auth(options: AuthMiddlewareOptions) {
     return async (req: NextRequest) => {
       try {
         if (!options || !options.protect) {
