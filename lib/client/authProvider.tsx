@@ -8,26 +8,35 @@ import {
   useState,
 } from "react";
 
-import { BaseUser, BaseSession } from "..";
+import { BaseUser, BaseSessionData } from "../core/base";
+import { useRouter } from "next/navigation";
+
+interface Auth {
+  user: BaseUser | null;
+  expiration: Date | null;
+  authenticated: boolean;
+}
 
 export interface IAuthContext {
   authenticated: boolean;
-  user: BaseUser | null;
-  session: BaseSession | null;
+  auth: Auth;
   isLoading: boolean; // Added for loading state
   error: Error | null; // Added for error handling
 }
 
 const authContext = createContext<IAuthContext>({
   authenticated: false,
-  user: null,
-  session: null,
-  isLoading: true,
-  error: null,
+  auth: { user: null, expiration: null, authenticated: false },
+  isLoading: true, // Added for loading state
+  error: null, // Added for error handling
 });
 
 interface AuthProviderProps {
   children: ReactNode;
+}
+
+interface FetchData extends BaseSessionData {
+  authenticated: boolean;
 }
 
 export function useAuth(): IAuthContext {
@@ -41,48 +50,49 @@ export function useAuth(): IAuthContext {
 }
 
 export function AuthProvider({ children }: AuthProviderProps) {
-  const [authLoading, setAuthLoading] = useState<boolean>(true);
-  const [user, setUser] = useState<BaseUser | null>(null);
-  const [session, setSession] = useState<BaseSession | null>(null);
-  const [authenticated, setAuthenticated] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<Error | null>(null);
+  const router = useRouter();
+
+  const [auth, setAuth] = useState<Auth>({
+    user: null,
+    expiration: null,
+    authenticated: false,
+  });
+
+  const fetchAuthData = async () => {
+    try {
+      const response = await fetch("/api/auth/session");
+      if (!response.ok) {
+        throw new Error(`Error: ${response.statusText}`);
+      }
+
+      const data: FetchData = await response.json();
+      console.log("Fetched auth data:", data); // Debugging log
+      setAuth({
+        user: data.user || null,
+        expiration: data.expiration ? new Date(data.expiration) : null,
+        authenticated: data.authenticated,
+      });
+    } catch (error: any) {
+      console.error("Fetch error:", error); // Debugging log
+      setError(error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
-    async function fetchAuthData() {
-      setAuthLoading(true);
-      try {
-        // Replace this with your actual fetch logic
-        const response = await fetch("/api/auth/session");
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch authentication data");
-        }
-
-        const data = await response.json();
-        setUser(data.session?.user); // Assumes data contains user and session fields
-        setSession(data.session);
-        setAuthenticated(true);
-      } catch (error: any) {
-        setError(error);
-        setUser(null);
-        setSession(null);
-        setAuthenticated(false);
-      } finally {
-        setAuthLoading(false);
-      }
-    }
-
     fetchAuthData();
   }, []);
 
   return (
     <authContext.Provider
       value={{
-        authenticated,
-        user,
-        session,
-        isLoading: authLoading,
-        error,
+        auth,
+        authenticated: auth.authenticated,
+        error: null,
+        isLoading,
       }}
     >
       {children}

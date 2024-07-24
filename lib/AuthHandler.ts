@@ -164,8 +164,10 @@ export class AuthHandler {
 
       return NextResponse.json({
         authenticated: !!data,
-        session: data,
+        user: data?.user || null,
+        expiration: data?.expiration || null,
       });
+      
     } catch (error) {
       return NextResponse.json({
         message: "Internal Error failed to fetch session",

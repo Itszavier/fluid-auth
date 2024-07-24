@@ -31,9 +31,10 @@ export class Session {
     this.options = {
       ...options,
       cookie: {
-        name: options.cookie.name || "auth",
-        expires: options.cookie.expires || defaultExpires,
-        sameSite: options.cookie.sameSite || "none",
+        name: "auth",
+        expires: defaultExpires,
+        sameSite: "strict",
+        secure: true,
         path: options.cookie.path,
         domain: options.cookie.domain,
         maxAge: options.cookie.maxAge,
@@ -61,7 +62,13 @@ export class Session {
   async getSession(): Promise<BaseSessionData | null> {
     const sessionId = cookies().get("auth")?.value;
     console.log("sessionID: ", sessionId);
+
     const session = await this.store.getSession(sessionId as string);
+
+    if (session && this.options.deserializeUser) {
+      session.user = await this.options.deserializeUser(session.user);
+    }
+
     console.log("getSession", session);
     return session;
   }
