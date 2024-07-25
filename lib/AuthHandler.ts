@@ -1,8 +1,9 @@
 /** @format */
 import { NextRequest, NextResponse } from "next/server";
-import { AuthHandlerConfig, AuthMiddlewareOptions } from "./core/types";
+import { AuthHandlerConfig, IAuthMiddlewareOptions } from "./core/types";
 import { Session } from "./core/session";
 import { BaseProvider } from "./core/base";
+import { verify } from "jsonwebtoken";
 import { getProvider, getRoute, isProtectedRoute, verifySessionToken } from "./utils/dev";
 
 let redirectUrl: string | null = null;
@@ -142,6 +143,38 @@ export class AuthHandler {
       });
     }
   }
+  /**
+   * @POST
+   *
+   * */
+  async handleVerifyToken(req: NextRequest) {
+    try {
+      const { token }: { token?: string } = await req.json();
+
+      if (!token) {
+        return NextResponse.json({ error: "Token is required" }, { status: 400 });
+      }
+
+      const sessionSecret = this.config.session.options.secret;
+
+      const decoded = verify(token, sessionSecret, {
+        algorithms: ["HS384"],
+        issuer: "fluid-auth",
+      });
+
+      return NextResponse.json({ valid: true, decoded });
+    } catch (error: any) {
+      return NextResponse.json({ valid: false, error: error.message }, { status: 401 });
+    }
+  }
+  /**
+   * @POST
+   *
+   * */
+  
+  async handleSessionRefresh(req: NextRequest) {
+
+  };
 
   private async handleGetRequest(req: NextRequest): Promise<NextResponse> {
     const route = getRoute(req);
@@ -165,6 +198,10 @@ export class AuthHandler {
     switch (true) {
       case route === "signin":
         return await this.handleLogin(req);
+
+      case route === "verify-token":
+        return await this.handleVerifyToken(req);
+
       default:
         return NextResponse.json(
           { message: "UnImplemented route" },
@@ -179,10 +216,80 @@ export class AuthHandler {
     switch (method) {
       case "GET":
         return await this.handleGetRequest(req);
+
       case "POST":
         return await this.handlePostRequest(req);
+
       default:
         return NextResponse.json({ message: "UnImplemented method" });
     }
   }
+
+  AuthMiddleare(options: IAuthMiddlewareOptions) {
+    return async (req: NextRequest) => {
+      try {
+        if (!options || !options.protect) {
+          return NextResponse.next();
+        }
+
+        // Check if the route should be protected
+        if (!isProtectedRoute(req.nextUrl.pathname, options.protect)) {
+          console.log("Returning, not a protected route.");
+          return NextResponse.next();
+        }
+        // Fetch the session data using axios
+
+        const cookieSession = req.cookies.get("fluid-auth");
+
+        if (!cookieSession) {
+          return handleProtectedRoute(req, options);
+        }
+
+        const url = `${this.config.origin}/api/auth/verify-token`;
+
+        const response = await fetch(url, {
+          method: "POST",
+
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ token: cookieSession.value }),
+        });
+
+        if (!response.ok) {
+          console.error("Failed to verify token:", response.statusText);
+          return handleProtectedRoute(req, options);
+        }
+
+        const data = await response.json();
+
+        if (data.valid) {
+          return NextResponse.next();
+        } else {
+          return handleProtectedRoute(req, options);
+        }
+      } catch (error) {
+        console.error("AuthMiddleware error:", error);
+        return NextResponse.redirect(new URL("/error", req.url));
+      }
+    };
+  }
+}
+
+export async function handleProtectedRoute(
+  req: NextRequest,
+  options: IAuthMiddlewareOptions
+): Promise<NextResponse> {
+  console.log("Session not found, handling authentication.");
+
+  if (typeof options.authenticate === "function") {
+    return await options.authenticate(req);
+  }
+
+  if (typeof options.redirectUrl === "function") {
+    const redirectUrl = await options.redirectUrl(req);
+    return NextResponse.redirect(new URL(redirectUrl, req.url));
+  }
+
+  return NextResponse.redirect(new URL(options.redirectUrl || "/", req.url));
 }

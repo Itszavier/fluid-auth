@@ -51,11 +51,11 @@ export class Session {
         expirationDate
       );
 
-      cookie.set(this.options.name as string, token, { ...this.options.cookie });
-
       if (this.store?.saveSession && typeof this.store.saveSession === "function") {
-        this.store.saveSession(sessionId);
+        await this.store.saveSession(sessionId);
       }
+      
+      cookie.set(this.options.name as string, token, { ...this.options.cookie });
     } catch (error) {
       throw error;
     }
@@ -85,7 +85,7 @@ export class Session {
   async deleteSession(): Promise<void> {
     try {
       const cookie = cookies();
-      
+
       const cookieName = this.options.name as string;
 
       const sessionCookie = cookie.get(cookieName);

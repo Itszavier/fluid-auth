@@ -6,10 +6,10 @@ import { Session } from "./session";
 
 export type BaseUser = any;
 
-export interface BaseSessionData<User = BaseUser> {
-  expiration: Date;
-  maxAge?: number;
-  user: User;
+export interface BaseSessionData {
+  expiries: Date;
+  userId: string;
+  sessionId: string;
   [key: string]: any;
 }
 
@@ -22,7 +22,7 @@ export abstract class BaseSessionStore {
    * @param {BaseSession} session - The session to be created and stored.
    * @returns {Promise<void | Error>} A promise that resolves to void or throws an error.
    */
-  abstract saveSession?(id: string, session?: any): Promise<void | Error>;
+  abstract saveSession?(session?: any): Promise<void | Error>;
 
   /**
    * Retrieves a session from the database.

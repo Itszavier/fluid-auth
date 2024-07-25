@@ -4,9 +4,9 @@ import { NextRequest } from "next/server";
 import authHandler from "./app/auth";
 import { authenticate } from "./lib/middleware";
 
-export const middleware = authenticate({
-  protect: "/profile",
+export const middleware = authHandler.AuthMiddleare({
   redirectUrl: "/",
+  protect: ["/profile"],
 });
 
 export const config = {

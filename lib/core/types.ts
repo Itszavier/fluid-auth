@@ -12,13 +12,13 @@ export interface AuthHandlerConfig {
 
 type RedirectUrlFunction = (req: NextRequest) => Promise<string>;
 
-export interface AuthMiddlewareOptions {
-  redirectUrl?: string | RedirectUrlFunction;
-  authenticate?(req: NextRequest): Promise<NextResponse>;
-  protect?: (string | RegExp)[];
-}
-
 export interface ISession {
   user: any;
   sessionId: string;
+}
+
+export interface IAuthMiddlewareOptions {
+  protect?: string | string[];
+  authenticate?: (req: NextRequest) => Promise<NextResponse>;
+  redirectUrl?: string | ((req: NextRequest) => Promise<string>);
 }

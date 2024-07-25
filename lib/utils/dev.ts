@@ -1,21 +1,9 @@
 /** @format */
 
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { BaseProvider } from "../core/base";
 import { JwtPayload, sign, verify } from "jsonwebtoken";
-import { ISession } from "../core/types";
-
-export function isProtectedRoute(path: string, patterns: (string | RegExp)[]) {
-  const resualt = patterns.some((pattern) => {
-    if (typeof pattern === "string") {
-      return path.startsWith(pattern);
-    }
-    return pattern.test(path);
-  });
-  console.log("isroute protected", resualt, path);
-
-  return resualt;
-}
+import { ISession, IAuthMiddlewareOptions } from "../core/types";
 
 export function getProvider(name: string, providers: BaseProvider[]): BaseProvider {
   const provider = providers.find((provider) => provider.name === name);
@@ -59,3 +47,12 @@ export async function verifySessionToken(token: string, secret: string) {
     return null;
   }
 }
+
+export function isProtectedRoute(pathname: string, protect: string | string[]) {
+  if (Array.isArray(protect)) {
+    return protect.some((route) => pathname.startsWith(route));
+  }
+
+  return pathname.startsWith(protect);
+}
+

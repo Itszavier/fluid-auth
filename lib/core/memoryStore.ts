@@ -8,9 +8,9 @@ export class MemoryStore extends BaseSessionStore {
     super();
   }
 
-  async saveSession(id: string, session: BaseSessionData): Promise<void> {
-    console.log(`[MemoryStore] saving session with ID: ${id}`);
-    this.data.set(id, session);
+  async saveSession(session: BaseSessionData): Promise<void> {
+    console.log(`[MemoryStore] saving session with ID: ${session.sessionId}`);
+    this.data.set(session.sessionId, session);
     console.log(`[MemoryStore] Data after create:`, this.data);
   }
 
