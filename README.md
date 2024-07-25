@@ -17,8 +17,6 @@ We welcome contributions from everyone!
 
 This package is fully open source, and we're excited to see how you can help make it even cooler.
 
-For information on how to get started, please refer to the [contributing guide](contributing.md).
-
 Please adhere to our [code of conduct](code-of-conduct.md) while contributing.
 
 ## Lessons Learned
