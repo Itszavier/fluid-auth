@@ -1,3 +1,5 @@
+/** @format */
+
 import { NextRequest, NextResponse } from "next/server";
 import { BaseProvider, BaseUser } from "../core/base";
 
@@ -15,10 +17,7 @@ export class LocalProvider extends BaseProvider {
     this.config = config;
   }
 
-  async handleLogin(
-    req: NextRequest,
-    persist: any
-  ): Promise<NextResponse<unknown>> {
+  async handleLogin(req: NextRequest): Promise<NextResponse<unknown>> {
     const body = await req.json();
 
     if (!body.email) {
@@ -48,4 +47,6 @@ export class LocalProvider extends BaseProvider {
       return NextResponse.json({ message: error.message, error });
     }
   }
+
+
 }

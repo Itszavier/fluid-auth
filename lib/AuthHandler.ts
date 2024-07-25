@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { AuthHandlerConfig, AuthMiddlewareOptions } from "./core/types";
 import { Session } from "./core/session";
 import { BaseProvider } from "./core/base";
-import { isProtectedRoute } from "./utils/dev";
+import { getProvider, getRoute, isProtectedRoute } from "./utils/dev";
 
 let redirectUrl: string | null = null;
 
@@ -52,8 +52,8 @@ export class AuthHandler {
     }
 
     try {
-      const provider = this.getProvider(providerName);
-      return await provider.handleLogin(req, this.persistData);
+      const provider = getProvider(providerName, this.config.providers!);
+      return await provider.handleLogin(req);
     } catch (error: any) {
       console.error("Error on the login route:", error);
       return NextResponse.json({ message: error.message }, { status: 500 });
@@ -78,10 +78,7 @@ export class AuthHandler {
    * @returns The Next.js response object
    */
 
-  private async handleCallback(
-    req: NextRequest,
-    route: string
-  ): Promise<NextResponse> {
+  private async handleCallback(req: NextRequest, route: string): Promise<NextResponse> {
     const providerName = route.split("/").pop();
 
     if (!providerName) {
@@ -103,10 +100,10 @@ export class AuthHandler {
       }
 
       const session = this.config.session;
-      const provider = this.getProvider(providerName);
-      const user = await provider.authorize!(code);
 
-      await session.createSession(user);
+      const provider = getProvider(providerName, this.config.providers!);
+
+      await provider.authorize(code);
 
       const redirect = redirectUrl ?? null; // Use stored redirect URL or default to "/"
 
@@ -128,29 +125,6 @@ export class AuthHandler {
   }
 
   /**
-   * Retrieves the provider by name from the config
-   * @param name - The name of the provider
-   * @returns The provider object
-   */
-
-  private getProvider(name: string): BaseProvider {
-    const provider = this.config.providers?.find(
-      (provider) => provider.name === name
-    );
-    if (!provider) {
-      throw new Error("Provider was not found");
-    }
-    return provider as BaseProvider;
-  }
-
-  private getRoute(req: NextRequest) {
-    const { pathname } = new URL(req.url);
-    const route = pathname.trim().split("/").splice(3).join("/");
-
-    return route;
-  }
-
-  /**
    * Handles the incoming request and routes it to the appropriate handler
    * @param req - The Next.js request object
    * @returns The Next.js response object
@@ -160,27 +134,22 @@ export class AuthHandler {
     try {
       const session = this.config.session;
 
-      const data = await session.getSession();
+      const cookie = req.cookies.get(this.config.session.options.cookie?.name as string);
+      const data = this.config.session.store.data.get(cookie?.value as string);
 
-      return NextResponse.json({
-        authenticated: !!data,
-        user: data?.user || null,
-        expiration: data?.expiration || null,
-      });
-      
+      console.log(cookie?.name, cookie?.value);
+
+      return NextResponse.json({ session: data });
     } catch (error) {
+      console.error("Error fetching session:", error);
       return NextResponse.json({
         message: "Internal Error failed to fetch session",
       });
     }
   }
 
-  async persistData(data: any) {
-    this.config.session.createSession(data);
-  }
-
   private async handleGetRequest(req: NextRequest): Promise<NextResponse> {
-    const route = this.getRoute(req);
+    const route = getRoute(req);
 
     switch (true) {
       case route === "signin":
@@ -197,7 +166,7 @@ export class AuthHandler {
   }
 
   private async handlePostRequest(req: NextRequest): Promise<NextResponse> {
-    const route = this.getRoute(req);
+    const route = getRoute(req);
     switch (true) {
       case route === "signin":
         return await this.handleLogin(req);
@@ -220,55 +189,5 @@ export class AuthHandler {
       default:
         return NextResponse.json({ message: "UnImplemented method" });
     }
-  }
-
-  Auth(options: AuthMiddlewareOptions) {
-    return async (req: NextRequest) => {
-      try {
-        if (!options || !options.protect) {
-          return NextResponse.next();
-        }
-
-        if (!isProtectedRoute(req.nextUrl.pathname, options.protect)) {
-          console.log("returning");
-          return NextResponse.next();
-        }
-
-        const session = await this.config.session.getSession();
-
-        console.log("session form auth middleware", session);
-
-        if (!session) {
-          console.log("runing method");
-          if (typeof options.authenticate === "function") {
-            return await options.authenticate(req);
-          }
-
-          if (typeof options.redirectUrl === "function") {
-            const redirectUrl = await options.redirectUrl(req);
-            return NextResponse.redirect(new URL(redirectUrl, req.url));
-          }
-
-          return NextResponse.redirect(
-            new URL(options.redirectUrl || "/", req.url)
-          );
-        }
-
-        // Check if session has expired
-        //  const expirationDate = new Date(session.expiration);
-        //  if (isExpired(expirationDate)) {
-        //console.log("Session expired, handling cleanup...");
-        // Delete expired session here
-        // For example, clear the session cookie or call a session removal service
-        //}
-
-        // Continue with the request if the session is valid
-        return NextResponse.next();
-      } catch (error) {
-        // Handle error (e.g., log it and/or return an error response)
-        console.error("AuthMiddleware error:", error);
-        return NextResponse.error();
-      }
-    };
   }
 }

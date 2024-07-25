@@ -6,7 +6,7 @@ import { ReactNode, createContext, useContext, useEffect, useState } from "react
 
 import { BaseUser, BaseSessionData } from "../core/base";
 
-interface Auth {
+export interface Auth {
   user: BaseUser | null;
   expiration: Date | null;
   authenticated: boolean;
@@ -77,7 +77,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
   };
 
   useEffect(() => {
-    console.log("use effect run");
     fetchAuthData();
   }, []);
 

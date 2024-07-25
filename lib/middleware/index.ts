@@ -1,63 +1,37 @@
+/** @format */
 import { NextRequest, NextResponse } from "next/server";
+import axios from "axios";
 
-function isExpired(expirationDate: string | Date): boolean {
-  // Create a Date object for the current date and time
-  const now = new Date();
-
-  // Check if expirationDate is a string and create a Date object if necessary
-  const expiration =
-    typeof expirationDate === "string"
-      ? new Date(expirationDate)
-      : expirationDate;
-
-  // Compare the current date with the expiration date
-  return now > expiration;
+interface AuthMiddlewareOptions {
+  protect?: string | string[];
+  authenticate?: (req: NextRequest) => Promise<NextResponse>;
+  redirectUrl?: string | ((req: NextRequest) => Promise<string>);
 }
 
-type RedirectUrlFunction = (req: NextRequest) => Promise<string>;
-
-interface IOptions {
-  redirectUrl?: string | RedirectUrlFunction;
-  authenticate?(req: NextRequest): Promise<NextResponse>;
-  protect?: (string | RegExp)[];
-}
-
-function isProtectedRoute(path: string, patterns: (string | RegExp)[]) {
-  return patterns.some((pattern) => {
-    if (typeof pattern === "string") {
-      return path.startsWith(pattern);
-    }
-    return pattern.test(path);
-  });
-}
-
-export function AuthMiddleware(options: IOptions) {
+export function authenticate(options: AuthMiddlewareOptions) {
   return async (req: NextRequest) => {
-    const url = new URL(req.url);
     try {
       if (!options || !options.protect) {
         return NextResponse.next();
       }
 
+      
+
+      // Check if the route should be protected
       if (!isProtectedRoute(req.nextUrl.pathname, options.protect)) {
-        console.log("returning");
+        console.log("Returning, not a protected route.");
         return NextResponse.next();
       }
-      const origin = url.origin;
-      console.log(origin);
-      const response = await fetch(`${origin}/api/auth/session`, {
-        method: "GET",
+      // Fetch the session data using axios
+      const response = await axios.get("http://localhost:3000/api/auth/session", {
+        withCredentials: true,
       });
 
-      if (!response.ok) {
-        throw new Error(`Failed to fetch session ${response.statusText}`);
-      }
+      const session = response.data;
+      console.log("Session from auth middleware", session);
+      if (!session.user) {
+        console.log("Session not found, handling authentication.");
 
-      const session = await response.json();
-      console.log("session form auth middleware", session);
-      // Handle case where there is no session
-      if (!session) {
-        console.log("runing method");
         if (typeof options.authenticate === "function") {
           return await options.authenticate(req);
         }
@@ -67,25 +41,22 @@ export function AuthMiddleware(options: IOptions) {
           return NextResponse.redirect(new URL(redirectUrl, req.url));
         }
 
-        return NextResponse.redirect(
-          new URL(options.redirectUrl || "/", req.url)
-        );
+        return NextResponse.redirect(new URL(options.redirectUrl || "/", req.url));
       }
 
-      // Check if session has expired
-      //  const expirationDate = new Date(session.expiration);
-      //  if (isExpired(expirationDate)) {
-      //console.log("Session expired, handling cleanup...");
-      // Delete expired session here
-      // For example, clear the session cookie or call a session removal service
-      //}
-
-      // Continue with the request if the session is valid
       return NextResponse.next();
     } catch (error) {
       // Handle error (e.g., log it and/or return an error response)
       console.error("AuthMiddleware error:", error);
-      throw error;
+      return NextResponse.json({ message: "An error occurred" });
     }
   };
+}
+
+function isProtectedRoute(pathname: string, protect: string | string[]) {
+  if (Array.isArray(protect)) {
+    return protect.some((route) => pathname.startsWith(route));
+  }
+
+  return pathname.startsWith(protect);
 }

@@ -1,3 +1,5 @@
+/** @format */
+
 import { BaseSessionData, BaseSessionStore } from ".";
 
 export class MemoryStore extends BaseSessionStore {
@@ -23,5 +25,21 @@ export class MemoryStore extends BaseSessionStore {
     console.log(`[MemoryStore] Deleting session with ID: ${sessionId}`);
     this.data.delete(sessionId);
     console.log(`[MemoryStore] Data after delete:`, this.data);
+  }
+
+  async cleanExpiredSessions(): Promise<void> {
+    // get current date in millisecond
+    const currentDate = new Date().getTime();
+
+    for (const [sessionId, session] of Array.from(this.data)) {
+      const expirationDate = new Date(session.expiration).getTime();
+
+      if (expirationDate >= currentDate) {
+        this.data.delete(sessionId);
+        console.log(`Session ${sessionId} expired and removed.`);
+      } else {
+        console.log("not expired");
+      }
+    }
   }
 }

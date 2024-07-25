@@ -1,4 +1,7 @@
+/** @format */
+
 import { NextRequest, NextResponse } from "next/server";
+
 import { Session } from "./session";
 
 export type BaseUser = any;
@@ -19,12 +22,7 @@ export abstract class BaseSessionStore {
    * @param {BaseSession} session - The session to be created and stored.
    * @returns {Promise<void | Error>} A promise that resolves to void or throws an error.
    */
-  async saveSession(
-    id: string,
-    session: BaseSessionData
-  ): Promise<void | Error> {
-    throw new Error("Function not implemented");
-  }
+  abstract saveSession(id: string, session: BaseSessionData): Promise<void | Error>;
 
   /**
    * Retrieves a session from the database.
@@ -32,9 +30,7 @@ export abstract class BaseSessionStore {
    * @param {string} sessionId - The ID of the session to retrieve.
    * @returns {Promise<BaseSession | null>} A promise that resolves to the session if found, or null if not found.
    */
-  async getSession(sessionId: string): Promise<BaseSessionData | null> {
-    throw new Error("Function not implemented");
-  }
+  abstract getSession(sessionId: string): Promise<BaseSessionData | null>;
 
   /**
    * Deletes a session from the database.
@@ -42,9 +38,13 @@ export abstract class BaseSessionStore {
    * @param {string} sessionId - The ID of the session to delete.
    * @returns {Promise<void>} A promise that resolves when the session has been deleted.
    */
-  async deleteSession(sessionId: string): Promise<void> {
-    throw new Error("Function not implemented");
-  }
+  abstract deleteSession(sessionId: string): Promise<void>;
+
+  /***
+   * Abstract method to clean expired sessions.
+   * Implementations should define how expired sessions are cleaned.
+   */
+  abstract cleanExpiredSessions(): Promise<void>;
 }
 
 export interface BaseProviderRunConfig {
@@ -57,6 +57,7 @@ export abstract class BaseProvider {
   name: string;
   runConfig: BaseProviderRunConfig;
   protected _session: Session | null = null;
+
   /**
    * Creates a new instance of BaseProvider.
    * @param {string} name - The name of the provider (used to deside which provide should be called) .
@@ -70,14 +71,9 @@ export abstract class BaseProvider {
    * Handles the login request.
    * @param {NextRequest} req - The incoming request.
    * @returns {Promise<NextResponse>} - A promise that resolves to the response.
-   * @throws {Error} If the method is not implemented.
    */
-  handleLogin(
-    req: NextRequest,
-    persist?: (data: any) => Promise<void>
-  ): Promise<NextResponse> {
-    throw new Error("handleLogin function not implemented");
-  }
+
+  abstract handleLogin(req: NextRequest): Promise<NextResponse>;
 
   /**
    * Authorizes the user using the provided code.
@@ -85,7 +81,7 @@ export abstract class BaseProvider {
    * @returns {Promise<any | null>} - A promise that resolves to the user data or null.
    */
 
-  async authorize(code: string): Promise<null | any> {}
+  async authorize(code: string): Promise<void> {}
 
   /**
    * This function should not be used to set the session; it is automatically used behind the scenes.
@@ -101,12 +97,9 @@ export abstract class BaseProvider {
    * @param userData - The user data to add to the session.
    * @returns The updated session object with the user data included.
    */
-  async persistUserToSession(newSession: any): Promise<void> {
+  async persistUserToSession(userData: any): Promise<void> {
     // Initialize the session if it does not already exist
-    console.log(
-      `[BaseProvider] Persisting user to session. User data:`,
-      newSession
-    );
+    console.log(`[BaseProvider] Persisting user to session. User data:`, userData);
 
     // Initialize the session if it does not already exist
     if (!this._session) {
@@ -118,12 +111,9 @@ export abstract class BaseProvider {
       );
     }
     try {
-      console.log(
-        `[BaseProvider] Creating session for user with data:`,
-        newSession
-      );
+      console.log(`[BaseProvider] Creating session for user with data:`, userData);
 
-      await this._session.createSession(newSession);
+      await this._session.createSession(userData);
 
       console.log(`[BaseProvider] Updated session for user `);
     } catch (error: any) {

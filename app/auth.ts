@@ -1,3 +1,5 @@
+/** @format */
+
 import { AuthHandler, Session } from "../lib/index";
 import { LocalProvider } from "../lib/providers";
 
@@ -5,7 +7,6 @@ const user = {
   id: "fewffewfewfewffwfewfwefew",
   name: "Imani Brown",
   email: "imanibrown421@gmail.com",
-  password: "test",
 };
 
 const Local = new LocalProvider({
@@ -15,7 +16,6 @@ const Local = new LocalProvider({
 });
 
 const session = new Session({
-  cookie: {},
   async serializeUser(user) {
     console.log("serializedUser");
     return user.id;
@@ -24,6 +24,11 @@ const session = new Session({
   async deserializeUser(id) {
     console.log("serializedUser");
     return user;
+  },
+
+  cookie: {
+    secure: false,
+    httpOnly: true,
   },
 });
 
