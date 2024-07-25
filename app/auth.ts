@@ -16,13 +16,13 @@ const Local = new LocalProvider({
 });
 
 const session = new Session({
-  async serializeUser(user) {
-    console.log("serializedUser");
-    return user.id;
+  secret: "session secret",
+  name: "fluid-auth",
+  serializeUser(userData) {
+    return userData.id;
   },
 
-  async deserializeUser(id) {
-    console.log("serializedUser");
+  deserializeUser: async (data) => {
     return user;
   },
 

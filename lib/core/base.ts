@@ -22,7 +22,7 @@ export abstract class BaseSessionStore {
    * @param {BaseSession} session - The session to be created and stored.
    * @returns {Promise<void | Error>} A promise that resolves to void or throws an error.
    */
-  abstract saveSession(id: string, session: BaseSessionData): Promise<void | Error>;
+  abstract saveSession?(id: string, session?: any): Promise<void | Error>;
 
   /**
    * Retrieves a session from the database.
@@ -30,7 +30,7 @@ export abstract class BaseSessionStore {
    * @param {string} sessionId - The ID of the session to retrieve.
    * @returns {Promise<BaseSession | null>} A promise that resolves to the session if found, or null if not found.
    */
-  abstract getSession(sessionId: string): Promise<BaseSessionData | null>;
+  abstract getSession?(sessionId: string): Promise<BaseSessionData | null>;
 
   /**
    * Deletes a session from the database.
@@ -38,13 +38,13 @@ export abstract class BaseSessionStore {
    * @param {string} sessionId - The ID of the session to delete.
    * @returns {Promise<void>} A promise that resolves when the session has been deleted.
    */
-  abstract deleteSession(sessionId: string): Promise<void>;
+  abstract deleteSession?(sessionId: string): Promise<void>;
 
   /***
    * Abstract method to clean expired sessions.
    * Implementations should define how expired sessions are cleaned.
    */
-  abstract cleanExpiredSessions(): Promise<void>;
+  abstract cleanExpiredSessions?(): Promise<void>;
 }
 
 export interface BaseProviderRunConfig {

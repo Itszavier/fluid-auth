@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { AuthHandlerConfig, AuthMiddlewareOptions } from "./core/types";
 import { Session } from "./core/session";
 import { BaseProvider } from "./core/base";
-import { getProvider, getRoute, isProtectedRoute } from "./utils/dev";
+import { getProvider, getRoute, isProtectedRoute, verifySessionToken } from "./utils/dev";
 
 let redirectUrl: string | null = null;
 
@@ -132,18 +132,13 @@ export class AuthHandler {
 
   private async handleGetSession(req: NextRequest): Promise<NextResponse> {
     try {
-      const session = this.config.session;
+      const user = await this.config.session.getSession();
 
-      const cookie = req.cookies.get(this.config.session.options.cookie?.name as string);
-      const data = this.config.session.store.data.get(cookie?.value as string);
-
-      console.log(cookie?.name, cookie?.value);
-
-      return NextResponse.json({ session: data });
-    } catch (error) {
+      return NextResponse.json({ user });
+    } catch (error: any) {
       console.error("Error fetching session:", error);
       return NextResponse.json({
-        message: "Internal Error failed to fetch session",
+        message: `[RequestGetSession]: ${error.message}`,
       });
     }
   }
