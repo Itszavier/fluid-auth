@@ -5,6 +5,7 @@ import { Session } from "./core/session";
 import { BaseProvider } from "./core/base";
 import { verify } from "jsonwebtoken";
 import { getProvider, getRoute, isProtectedRoute, verifySessionToken } from "./utils/dev";
+import next from "next";
 
 let redirectUrl: string | null = null;
 
@@ -171,10 +172,18 @@ export class AuthHandler {
    * @POST
    *
    * */
-  
-  async handleSessionRefresh(req: NextRequest) {
 
-  };
+  async handleSessionRefresh(req: NextRequest) {
+    try {
+      const session = this.config.session;
+
+      await session.refreshSession();
+
+      return NextResponse.json({ message: "Token refreshed" });
+    } catch (error: any) {
+      return NextResponse.json({ message: error.message }, { status: 500 });
+    }
+  }
 
   private async handleGetRequest(req: NextRequest): Promise<NextResponse> {
     const route = getRoute(req);
@@ -238,16 +247,18 @@ export class AuthHandler {
           return NextResponse.next();
         }
         // Fetch the session data using axios
-
-        const cookieSession = req.cookies.get("fluid-auth");
+        const cookieName = this.config.session.options.name as string;
+        const cookieSession = req.cookies.get(cookieName);
 
         if (!cookieSession) {
           return handleProtectedRoute(req, options);
         }
 
-        const url = `${this.config.origin}/api/auth/verify-token`;
+        const verifyUrl = `${this.config.origin}/api/auth/verify-token`;
+        const refreshUrl = `${this.config.origin}/api/auth/refresh-session`;
+        
 
-        const response = await fetch(url, {
+        const response = await fetch(verifyUrl, {
           method: "POST",
 
           headers: {
@@ -266,7 +277,8 @@ export class AuthHandler {
         if (data.valid) {
           return NextResponse.next();
         } else {
-          return handleProtectedRoute(req, options);
+          await handleInvalidToken(refreshUrl);
+          return NextResponse.next();
         }
       } catch (error) {
         console.error("AuthMiddleware error:", error);
@@ -292,4 +304,22 @@ export async function handleProtectedRoute(
   }
 
   return NextResponse.redirect(new URL(options.redirectUrl || "/", req.url));
+}
+
+export async function handleInvalidToken(refreshUrl: string) {
+  try {
+    const response = await fetch(refreshUrl, {
+      method: "POST",
+    });
+
+    if (!response.ok) {
+      console.error("[HandleInvalidToken]: Response failed", response.statusText);
+    }
+
+    const data = await response.json();
+
+    console.log(data);
+  } catch (error) {
+    console.log(error);
+  }
 }

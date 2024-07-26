@@ -3,8 +3,9 @@ import { cookies } from "next/headers";
 import { BaseSessionData, BaseSessionStore, BaseUser } from "./base";
 import { randomBytes } from "crypto";
 import { createSessionToken, verifySessionToken } from "../utils/dev";
-import { decode, JwtPayload } from "jsonwebtoken";
+import { decode, JsonWebTokenError, JwtPayload, verify } from "jsonwebtoken";
 import { ISession } from ".";
+import { JWTPayload } from "jose";
 
 interface Cookie {
   path?: string;
@@ -25,22 +26,22 @@ interface ISessionOption {
 export class Session {
   options: ISessionOption;
   store?: BaseSessionStore;
+  private expirationDate: number;
 
   constructor(options: ISessionOption) {
-    const expiresIn80Days = 80 * 24 * 60 * 60 * 1000;
-
     this.options = {
+      name: "fluid-auth",
       ...options,
-      cookie: defineDefualtCookie(options.cookie),
+      cookie: defineDefaultCookie(options.cookie),
     };
     this.store = this.options.store;
+    this.expirationDate = Date.now() + 10 * 1000;
   }
 
   async createSession(data: any): Promise<void> {
     try {
       // this.store.cleanExpiredSessions();
       const cookie = cookies();
-      const expirationDate = Date.now() * 80 * 60 * 1000;
       const sessionId = randomBytes(18).toString("hex");
       const sessionSecret = this.options.secret;
       const user: any = this.options.serializeUser(data);
@@ -48,14 +49,20 @@ export class Session {
       const token = await createSessionToken(
         sessionSecret,
         { user, sessionId: sessionId },
-        expirationDate
+        this.expirationDate
       );
 
       if (this.store?.saveSession && typeof this.store.saveSession === "function") {
-        await this.store.saveSession(sessionId);
+        await this.store.saveSession({
+          sessionId,
+          expires: new Date(this.expirationDate),
+        });
       }
-      
-      cookie.set(this.options.name as string, token, { ...this.options.cookie });
+
+      cookie.set(this.options.name as string, token, {
+        ...this.options.cookie,
+        expires: new Date(this.expirationDate * 1),
+      });
     } catch (error) {
       throw error;
     }
@@ -104,9 +111,53 @@ export class Session {
       throw error;
     }
   }
+
+  async refreshSession() {
+    const cookie = cookies();
+
+    const sessionCookie = cookie.get(this.options.name as string);
+
+    if (!sessionCookie) {
+      return;
+    }
+    const cookieName = this.options.name as string;
+    const token = sessionCookie.value;
+    const secret = this.options.secret;
+    const expires = this.expirationDate;
+    const cookieOptions = this.options.cookie;
+
+    verify(token, secret, async function (error) {
+      if (!error) {
+        return;
+      }
+
+      console.log("[Session]: Refresh token error", error);
+
+      if (error?.name === "TokenExpiredError") {
+        const decoded = decode(token) as JWTPayload;
+        const newToken = await createSessionToken(
+          secret,
+          {
+            user: decoded.user,
+            sessionId: decoded.sessionId as any,
+          },
+          expires
+        );
+
+        cookie.set(cookieName, newToken, {
+          ...cookieOptions,
+          expires: new Date(expires * 1),
+        });
+
+        console.log("TOken refreshed", newToken);
+      } else {
+        throw error;
+      }
+    });
+  }
 }
 
-function defineDefualtCookie(config?: Cookie) {
+function defineDefaultCookie(config?: Cookie) {
   const options: Cookie = {
     httpOnly: config?.httpOnly ?? true,
     sameSite: config?.sameSite ?? "strict",
